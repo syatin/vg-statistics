@@ -34,6 +34,7 @@ for gamemode in ['ranked', 'ranked5v5', 'blitz']:
             'region': region
         })
         offset = 0
+
         while True:
             is_under_threshold = False
             params = {"limit": 10, "offset": offset}
@@ -45,6 +46,8 @@ for gamemode in ['ranked', 'ranked5v5', 'blitz']:
                     is_under_threshold = True
                     break
                 else:
+                    winRate = int(player['winRate'].replace('%','')) if type(player['winRate']) is str else player['winRate']
+                    kp = int(player['kp'].replace('%','')) if type(player['kp']) is str else player['kp']
                     playerModel = VgproLeaderboard(
                         gamemode = gamemode,
                         region = region,
@@ -54,8 +57,8 @@ for gamemode in ['ranked', 'ranked5v5', 'blitz']:
                         position = player['position'],
                         points = float(player['points']),
                         kda = player['kda'],
-                        winRate = player['winRate'].replace('%',''),
-                        kp = player['kp'],
+                        winRate = winRate,
+                        kp = kp,
                         games = player['games'],
                         wins = player['wins']
                     )
