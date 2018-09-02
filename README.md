@@ -5,6 +5,8 @@
 1. Python + MySQL の環境構築
 2. MySQLにvaingloryデータベースを作成しておく
 3. このプロジェクトを`git clone`
+    - pyenv と pyenv-virtualenv を使い、プロジェクトのディレクトリをPython3.6 にして下さい。
+    - [【Python】pyenv pyenv-virtualenvの使い方](https://qiita.com/akidroid/items/9f983f875e98eae2fda8)
 4. プロジェクトフォルダにて`pip install -r requirements.txt`
 5. `app/config.py` を作成し設定情報を記載。内容は下記を参考にして下さい。  
 ```python
