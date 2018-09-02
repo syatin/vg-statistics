@@ -38,9 +38,9 @@ for gamemode in ['ranked', 'ranked5v5', 'blitz']:
             is_under_threshold = False
             params = {"limit": 10, "offset": offset}
             http = requests.get(requesturl, headers=headers, params=params)
+            print(requesturl+'?limit=10&offset='+str(offset))
             leaderboard = http.json()
             for player in leaderboard:
-                print(player)
                 if float(player['points']) < threshold_points:
                     is_under_threshold = True
                     break
@@ -54,7 +54,7 @@ for gamemode in ['ranked', 'ranked5v5', 'blitz']:
                         position = player['position'],
                         points = float(player['points']),
                         kda = player['kda'],
-                        winRate = player['winRate'],
+                        winRate = player['winRate'].replace('%',''),
                         kp = player['kp'],
                         games = player['games'],
                         wins = player['wins']
