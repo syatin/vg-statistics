@@ -1,0 +1,20 @@
+CREATE TABLE `vgpro_leaderboard` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `gamemode` varchar(16) NOT NULL DEFAULT '',
+  `playerId` varchar(64) NOT NULL DEFAULT '',
+  `name` varchar(64) NOT NULL DEFAULT '',
+  `region` varchar(2) NOT NULL DEFAULT '',
+  `tier` int(11) DEFAULT NULL,
+  `position` int(11) NOT NULL,
+  `points` float DEFAULT NULL,
+  `kda` decimal(10,2) DEFAULT NULL,
+  `winRate` decimal(10,2) DEFAULT NULL,
+  `kp` decimal(10,2) DEFAULT NULL,
+  `games` int(11) DEFAULT NULL,
+  `wins` int(11) DEFAULT NULL,
+  `request_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `gamemode` (`gamemode`,`region`,`position`),
+  KEY `playerId` (`playerId`,`gamemode`),
+  KEY `name` (`name`,`gamemode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
