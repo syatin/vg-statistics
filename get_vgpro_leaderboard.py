@@ -10,7 +10,7 @@ from app.models import VgproLeaderboard
 VGPROのリーダーボードから、各ゲームモードでRank7以上のプレイヤーのデータを引っ張ってくるバッチです。
 
 実行
-python get_vgpro_leaderboard.py
+nohup python get_vgpro_leaderboard.py >> get_vgpro_leaderboard.py.log &
 """
 
 apiurl = 'https://api.vgpro.gg/leaderboard'
