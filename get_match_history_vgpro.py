@@ -9,12 +9,10 @@ from requests.exceptions import HTTPError
 
 import gamelocker
 import datetime, sys, traceback
-from time import sleep
 
 """
 Usage
-nohup python get_match_history.py ranked ea >> get_match_history_3v3.log &
-nohup python get_match_history.py ranked5v5 ea >> get_match_history_5v5.log &
+nohup python get_match_history_vgpro.py ranked ea >> get_match_history.log &
 
 # Reference
 https://developer.vainglorygame.com/docs#get-a-collection-of-players
@@ -36,70 +34,79 @@ if len(args) != 3:
     print('Specify gamemode and region. example : ranked5v5 ea')
     exit()
 
-gamemode = args[1]
-if gamemode not in  ['ranked', 'ranked5v5', 'blitz']:
-    print(gamemode + ' is not valid gamemode')
+vgpro_gamemode = args[1]
+if vgpro_gamemode not in  ['ranked', 'ranked5v5', 'blitz']:
+    print(vgpro_gamemode + ' is not valid gamemode')
     exit()
 
-region = args[2]
-if region not in ['na', 'eu', 'ea', 'sg', 'sa', 'cn']:
+vgpro_region = args[2]
+if vgpro_region not in ['na', 'eu', 'ea', 'sg', 'sa', 'cn']:
     print(vgpro_region + 'is not valid region')
     exit()
 
-def main(gamemode, region):
-    if gamemode == 'ranked5v5':
+def main(vgpro_gamemode, vgpro_region):
+    gamemode = 'ranked'
+    if vgpro_gamemode == 'ranked5v5':
         gamemode = '5v5_pvp_ranked'
-    if gamemode == 'blitz':
+    if vgpro_gamemode == 'blitz':
         gamemode = 'blitz_pvp_ranked'
 
-    created_at = None
-    last_match = Matches.query.filter(
-        Matches.gameMode == gamemode
-    ).order_by(Matches.createdAt.desc()).first()
-    if last_match:
-        created_at = last_match.createdAt.isoformat() + 'Z'
+    vgpro_players = VgproLeaderboard.query.filter(
+        VgproLeaderboard.region == vgpro_region,
+        VgproLeaderboard.gamemode == vgpro_gamemode
+    ).order_by(VgproLeaderboard.position.asc())
 
-    while True:
-        app.logger.info('gamemode = ' + gamemode + ', createdAt = ' + created_at)
-        retrieve_player_match_history(gamemode = gamemode, region = region, created_at = created_at)
+    for player in vgpro_players:
+        if player.games < 20:
+            # 試合数が少ないプレイヤーは足切り
+            continue
 
-        # Vain側に試合データが溜まるのを待つ
-        sleep(60)
+        app.logger.info('processing vgpro_player ign = ' + player.name + ', playerId = ' + player.playerId)
+        retrieve_player_match_history(gamemode = gamemode, player_id = player.playerId)
+
+    exit()
 
 
-def retrieve_player_match_history(gamemode, region, created_at):
+def retrieve_player_match_history(gamemode = None, player_id = None, ign = None):
     offset = 0
     while True:
         try:
-            app.logger.info('retrieving Gamelocker API data : offset = ' + str(offset))
+            app.logger.info('retrieving Gamelocker API : offset = ' + str(offset))
             api = gamelocker.Gamelocker(app.config['API_KEY']).Vainglory()
             matches = api.matches({
                 'filter[patchVersion]' : PATCH_VERSION,
                 'filter[gameMode]': gamemode,
-                'filter[createdAt-start]': created_at,
+                'filter[playerIds]': player_id,
                 'page[limit]': LIMIT,
                 'page[offset]': offset
-            }, region = region)
+            }, region='ea')
             if matches is not None:
                 process_count = 0
                 for match in matches:
                     count = process_match(match)
                     process_count = process_count + count
 
-                offset = offset + LIMIT
-                continue
+                if process_count == 0:
+                    # 全部処理済だったら、このプレイヤーは終了
+                    # 本当は続きがあるかもしれないけど、網羅するよりも高速化を優先する為
+                    break
 
+                if LIMIT == len(matches):
+                    # 続きがありそう
+                    offset = offset + LIMIT
+                    continue
             else:
                 app.logger.info('no match found')
                 break
 
         except HTTPError as e:
             if e.response.status_code == 404:
+                # 最近試合してない、IGNが違う、など
                 app.logger.info('Couldn\'t find match history')
             else:
                 app.logger.info(e)
+            # エラーが発生したら、とりあえずこのプレイヤーは終了
             break
-
 
 def process_match(match):
     """
@@ -213,19 +220,14 @@ def process_match(match):
             # ロール計算
             if match.gameMode == 'ranked':
                 # 3v3
-                sorted_models = sorted(participant_models, key=lambda x:x.minionKills, reverse=True)
-                carry_model = sorted_models[0]
+                carry_model = sorted(participant_models, key=lambda x:x.nonJungleMinionKills, reverse=True)[0]
                 carry_model.role = 'laner'
                 db.session.add(carry_model)
-                jungler_model = sorted_models[1]
+                jungler_model = sorted(participant_models, key=lambda x:x.jungleKills, reverse=True)[0]
                 jungler_model.role = 'jungler'
                 db.session.add(jungler_model)
-                captain_model = sorted_models[2]
-                if captain_model.is_wp_build == 1 or captain_model.is_cp_build == 1:
-                    # 低階層などのキャプテン無し構成
-                    captain_model.role = 'jungler'
-                else:
-                    captain_model.role = 'captain'
+                captain_model = sorted(participant_models, key=lambda x:x.minionKills, reverse=False)[0]
+                captain_model.role = 'captain'
                 db.session.add(captain_model)
             elif match.gameMode == '5v5_pvp_ranked':
                 # 5v5
@@ -263,7 +265,7 @@ def process_match(match):
         return 1
     except:
         app.logger.error(traceback.print_exc())
-        db.session.rollback()
+        db_session.rollback()
         return 0
 
 g.item_master = None
@@ -384,4 +386,4 @@ def get_rank(point):
         return 1 # 1b
 
 # 実行！
-main(gamemode, region)
+main(vgpro_gamemode, vgpro_region)
