@@ -29,3 +29,17 @@ SELECT `m`.`shardId`, `m`.`gamemode` AS `ゲームモード`, `r`.`averageRank`,
  GROUP BY `m`.`shardId`, `m`.`gamemode`, `r`.`averageRank`
  ORDER BY `m`.`shardId`, `m`.`gamemode`, `r`.`averageRank`
 ;
+
+# 特定のユーザーの試合履歴取得
+ SELECT *
+   FROM matches m
+   JOIN participants p
+     ON m.id = p.match_id
+   JOIN players pl
+     ON pl.id = p.player_id
+  WHERE m.gameMode = '5v5_pvp_ranked'
+    AND pl.name = 'Kootam'
+    AND m.createdAt > (NOW() - INTERVAL 1 WEEK)
+  ORDER BY m.createdAt DESC
+  LIMIT 10
+;
