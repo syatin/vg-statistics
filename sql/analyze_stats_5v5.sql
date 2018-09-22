@@ -1,4 +1,4 @@
-# 5v5 ポジション別 CPビルド勝率
+# 5v5 EA ポジション別 CPビルド勝率
 SELECT `h`.`ja` AS `CPビルド(5v5, EA)`,
        `p`.`role` AS `ロール`,
         SUM(`p`.`winner`) as `勝利数`,
@@ -9,9 +9,10 @@ SELECT `h`.`ja` AS `CPビルド(5v5, EA)`,
     ON `p`.`match_id` = `m`.`id`
   JOIN `m_heros` `h`
     ON `p`.`actor` = `h`.`actor`
- WHERE `m`.`gamemode` = '5v5_pvp_ranked' # ranked / 5v5_pvp_ranked
+ WHERE `m`.`shardId` = 'ea'
+   AND `m`.`gamemode` = '5v5_pvp_ranked' # ranked / 5v5_pvp_ranked
    AND `p`.`rank` >= 8
-   AND `p`.`is_cp_build` = 1
+   AND `p`.`build_type` = 'CP'
  GROUP BY `h`.`ja`, `p`.`role`
 HAVING COUNT(`p`.`id`) >= 50
  ORDER BY `勝率` DESC
@@ -28,9 +29,10 @@ SELECT `h`.`ja` AS `WPビルド(5v5, EA)`,
     ON `p`.`match_id` = `m`.`id`
   JOIN `m_heros` `h`
     ON `p`.`actor` = `h`.`actor`
- WHERE `m`.`gamemode` = '5v5_pvp_ranked' # ranked, 5v5_pvp_ranked
+ WHERE `m`.`shardId` = 'ea'
+   AND `m`.`gamemode` = '5v5_pvp_ranked' # ranked, 5v5_pvp_ranked
    AND `p`.`rank` >= 8
-   AND `p`.`is_wp_build` = 1
+   AND `p`.`build_type` = 'WP'
  GROUP BY `h`.`ja`, `p`.`role`
 HAVING COUNT(`p`.`id`) >= 50
  ORDER BY `勝率` DESC
@@ -47,9 +49,10 @@ SELECT `h`.`ja` AS `サポートビルド(5v5, EA)`,
     ON `p`.`match_id` = `m`.`id`
   JOIN `m_heros` `h`
     ON `p`.`actor` = `h`.`actor`
- WHERE `m`.`gamemode` = '5v5_pvp_ranked' # ranked / 5v5_pvp_ranked
+ WHERE `m`.`shardId` = 'ea'
+   AND `m`.`gamemode` = '5v5_pvp_ranked' # ranked / 5v5_pvp_ranked
    AND `p`.`rank` >= 8
-   AND `p`.`is_utility_build` = 1
+   AND `p`.`build_type` = 'UTILITY'
  GROUP BY `h`.`ja`, `p`.`role`
 HAVING COUNT(`p`.`id`) >= 50
  ORDER BY `勝率` DESC

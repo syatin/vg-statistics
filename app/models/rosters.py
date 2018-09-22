@@ -1,5 +1,5 @@
 from app.database import db
-from sqlalchemy.types import JSON, VARCHAR, INT, DECIMAL, DATETIME, BOOLEAN
+from sqlalchemy.types import JSON, VARCHAR, INT
 
 class Rosters(db.Model):
 

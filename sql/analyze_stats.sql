@@ -20,3 +20,12 @@ SELECT `m`.`gamemode` AS `ゲームモード`, AVG(`m`.`duration`) / 60 AS `試�
  WHERE `r`.`averageRank` >= 8
  GROUP BY `m`.`gamemode`
 ;
+
+# 階層別プレイ回数
+SELECT `m`.`shardId`, `m`.`gamemode` AS `ゲームモード`, `r`.`averageRank`, COUNT(`m`.`id`) AS `試合数`
+  FROM `matches` `m`
+  JOIN `rosters` `r`
+    ON `m`.`id` = `r`.`match_id`
+ GROUP BY `m`.`shardId`, `m`.`gamemode`, `r`.`averageRank`
+ ORDER BY `m`.`shardId`, `m`.`gamemode`, `r`.`averageRank`
+;

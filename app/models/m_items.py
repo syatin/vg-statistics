@@ -1,5 +1,5 @@
 from app.database import db
-from sqlalchemy.types import JSON, VARCHAR, INT, DECIMAL, DATETIME
+from sqlalchemy.types import VARCHAR, INT
 
 class MItems(db.Model):
 

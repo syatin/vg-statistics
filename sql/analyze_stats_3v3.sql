@@ -10,7 +10,7 @@ SELECT `h`.`ja` AS `CPビルド(3v3, EA)`,
     ON `p`.`actor` = `h`.`actor`
  WHERE `m`.`gamemode` = 'ranked' # ranked / 5v5_pvp_ranked
    AND `p`.`rank` >= 8
-   AND `p`.`is_cp_build` = 1
+   AND `p`.`build_type` = 'CP'
  GROUP BY `h`.`ja`
 HAVING COUNT(`p`.`id`) >= 50
  ORDER BY `勝率` DESC
@@ -28,7 +28,7 @@ SELECT `h`.`ja` AS `WPビルド(3v3, EA)`,
     ON `p`.`actor` = `h`.`actor`
  WHERE `m`.`gamemode` = 'ranked' # ranked, 5v5_pvp_ranked
    AND `p`.`rank` >= 8
-   AND `p`.`is_wp_build` = 1
+   AND `p`.`build_type` = 'WP'
  GROUP BY `h`.`ja`
 HAVING COUNT(`p`.`id`) >= 50
  ORDER BY `勝率` DESC
@@ -46,7 +46,7 @@ SELECT `h`.`ja` AS `サポートビルド(3v3, EA)`,
     ON `p`.`actor` = `h`.`actor`
  WHERE `m`.`gamemode` = 'ranked' # ranked / 5v5_pvp_ranked
    AND `p`.`rank` >= 8
-   AND `p`.`is_utility_build` = 1
+   AND `p`.`build_type` = 'UTILITY'
  GROUP BY `h`.`ja`
 HAVING COUNT(`p`.`id`) >= 50
  ORDER BY `勝率` DESC

@@ -1,20 +1,34 @@
+import gamelocker
+import sys, traceback, time
+
 from app.app import app
 from app.database import db
-from app.models import MItems, Matches, Players, Participants, Rosters, VgproLeaderboard
+from app.models import MHeros, MItems, Matches, Players, Participants, Rosters, StatHeros, StatSynergy
+from app.util import get_rank, get_build_type, get_week_start_date, get_duration_type
 
 from flask import Flask, request, g
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from requests.exceptions import HTTPError
 
-import gamelocker
-import datetime, sys, traceback
+from requests.exceptions import HTTPError
+from datetime import datetime, date, timedelta
 from time import sleep
 
 """
 Usage
-nohup python get_match_history.py ranked ea >> get_match_history_3v3.log &
-nohup python get_match_history.py ranked5v5 ea >> get_match_history_5v5.log &
+nohup python get_match_history.py ranked na >> get_match_history_3v3_na.log &
+nohup python get_match_history.py ranked eu >> get_match_history_3v3_eu.log &
+nohup python get_match_history.py ranked ea >> get_match_history_3v3_ea.log &
+nohup python get_match_history.py ranked sg >> get_match_history_3v3_sg.log &
+nohup python get_match_history.py ranked sa >> get_match_history_3v3_sa.log &
+nohup python get_match_history.py ranked cn >> get_match_history_3v3_cn.log &
+
+nohup python get_match_history.py ranked5v5 na >> get_match_history_5v5_na.log &
+nohup python get_match_history.py ranked5v5 eu >> get_match_history_5v5_eu.log &
+nohup python get_match_history.py ranked5v5 ea >> get_match_history_5v5_ea.log &
+nohup python get_match_history.py ranked5v5 sg >> get_match_history_5v5_sg.log &
+nohup python get_match_history.py ranked5v5 sa >> get_match_history_5v5_sa.log &
+nohup python get_match_history.py ranked5v5 cn >> get_match_history_5v5_cn.log &
 
 # Reference
 https://developer.vainglorygame.com/docs#get-a-collection-of-players
@@ -38,12 +52,12 @@ if len(args) != 3:
 
 gamemode = args[1]
 if gamemode not in  ['ranked', 'ranked5v5', 'blitz']:
-    print(gamemode + ' is not valid gamemode')
+    print('{} is not valid gamemode'.format(gamemode))
     exit()
 
 region = args[2]
 if region not in ['na', 'eu', 'ea', 'sg', 'sa', 'cn']:
-    print(vgpro_region + 'is not valid region')
+    print('{} is not valid region'.format(vgpro_region))
     exit()
 
 def main(gamemode, region):
@@ -52,26 +66,36 @@ def main(gamemode, region):
     if gamemode == 'blitz':
         gamemode = 'blitz_pvp_ranked'
 
-    created_at = None
-    last_match = Matches.query.filter(
-        Matches.gameMode == gamemode
-    ).order_by(Matches.createdAt.desc()).first()
-    if last_match:
-        created_at = last_match.createdAt.isoformat() + 'Z'
-
     while True:
-        app.logger.info('gamemode = ' + gamemode + ', createdAt = ' + created_at)
-        retrieve_player_match_history(gamemode = gamemode, region = region, created_at = created_at)
+        # 最後に処理した試合の後から取得する
+        created_at = None
+        last_match = Matches.query.filter(
+            Matches.gameMode == gamemode,
+            Matches.shardId == region
+        ).order_by(Matches.createdAt.desc()).first()
+        if last_match:
+            created_at = last_match.createdAt.isoformat() + 'Z'
+        else:
+            # 未処理の場合は2週間前を起点とする
+            two_weeks_ago = datetime.fromtimestamp(time.time()) - timedelta(weeks=2)
+            created_at = two_weeks_ago.isoformat() + 'Z'
 
-        # Vain側に試合データが溜まるのを待つ
-        sleep(60)
+        # 処理本体の呼び出し
+        retrieve_match_history(gamemode=gamemode, region=region, created_at=created_at)
+
+        # 処理が一段落したら、Vain側に試合データが溜まるのを待つ
+        sleep(30)
 
 
-def retrieve_player_match_history(gamemode, region, created_at):
+def retrieve_match_history(gamemode, region, created_at):
+    """
+    Gamelocker API から試合履歴を取得し諸々処理して保存する
+    """
     offset = 0
+    app.logger.info('gamemode = {}, createdAt = {}'.format(gamemode, str(created_at)))
     while True:
         try:
-            app.logger.info('retrieving Gamelocker API data : offset = ' + str(offset))
+            app.logger.info('retrieving Gamelocker API data : offset = {}'.format(offset))
             api = gamelocker.Gamelocker(app.config['API_KEY']).Vainglory()
             matches = api.matches({
                 'filter[patchVersion]' : PATCH_VERSION,
@@ -81,16 +105,17 @@ def retrieve_player_match_history(gamemode, region, created_at):
                 'page[offset]': offset
             }, region = region)
             if matches is not None:
-                process_count = 0
+                processed_count = 0
                 for match in matches:
-                    count = process_match(match)
-                    process_count = process_count + count
+                    processed_count += process_match(match)
 
-                offset = offset + LIMIT
-                continue
+                app.logger.info('{} matches were processed.'.format(processed_count))
+                if processed_count >= LIMIT - 1:
+                    if offset <= 1000:
+                        offset += LIMIT
+                        continue
 
-            else:
-                app.logger.info('no match found')
+                offset = 0
                 break
 
         except HTTPError as e:
@@ -98,46 +123,53 @@ def retrieve_player_match_history(gamemode, region, created_at):
                 app.logger.info('Couldn\'t find match history')
             else:
                 app.logger.info(e)
+            offset = 0
             break
+
+    app.logger.info('retrieving data done')
+    return
 
 
 def process_match(match):
     """
-    試合履歴を処理する
+    1つの試合履歴を処理する
     """
     try:
-        match_model = Matches.query.filter_by(uuid = match.id).first()
+        match_model = Matches.query.filter_by(uuid=match.id).first()
         if match_model is not None:
             # 処理済なので処理件数は0で返す
             return 0
 
-        app.logger.info('processing a match : id = ' + match.id)
+        app.logger.info('processing a match : id = {}'.format(match.id))
 
         match_model = Matches(
-            uuid = match.id,
-            shardId = match.shardId,
-            gameMode = match.gameMode,
-            duration = match.duration,
-            endGameReason = match.stats['endGameReason'],
-            patchVersion = match.patchVersion,
-            createdAt = datetime.datetime.strptime(match.createdAt, '%Y-%m-%dT%H:%M:%SZ')
+            uuid=match.id,
+            shardId=match.shardId,
+            gameMode=match.gameMode,
+            duration=match.duration,
+            endGameReason=match.stats['endGameReason'],
+            patchVersion=match.patchVersion,
+            createdAt=datetime.strptime(match.createdAt, '%Y-%m-%dT%H:%M:%SZ')
         )
         db.session.add(match_model)
         db.session.flush()
 
+        # シナジーデータ計算用に Participant モデルのリストを保持する
+        participant_models_by_rosters = []
+
         for roster in match.rosters:
             roster_model = Rosters(
-                match_id = match_model.id,
-                acesEarned = roster.stats['acesEarned'],
-                gold = roster.stats['gold'],
-                heroKills = roster.stats['heroKills'],
-                krakenCaptures = roster.stats['krakenCaptures'],
-                side = roster.stats['side'],
-                turretKills = roster.stats['turretKills'],
-                turretsRemaining = roster.stats['turretsRemaining'],
-                won = 1 if roster.won == 'true' else 0,
-                averageRankedPoint = 0,
-                averageRank = 0
+                match_id=match_model.id,
+                acesEarned=roster.stats['acesEarned'],
+                gold=roster.stats['gold'],
+                heroKills=roster.stats['heroKills'],
+                krakenCaptures=roster.stats['krakenCaptures'],
+                side=roster.stats['side'],
+                turretKills=roster.stats['turretKills'],
+                turretsRemaining=roster.stats['turretsRemaining'],
+                won=1 if roster.won == 'true' else 0,
+                averageRankedPoint=0,
+                averageRank=0
             )
             db.session.add(roster_model)
             db.session.flush()
@@ -145,27 +177,32 @@ def process_match(match):
             player_count = 0
             total_rank_points = 0
 
-            # Role特定の為に Participant のモデル一覧を保持する
+            # ロール特定の為に Participant のモデル一覧を保持する
             participant_models = []
 
             for participant in roster.participants:
-                player_count = player_count + 1
+                # プレイヤーの情報を更新
+                player_count += 1
                 player = participant.player
                 player_model = Players.query.filter_by(playerId = player.key_id).first()
                 if player_model is None:
-                    player_model = Players(
-                        playerId = player.key_id,
-                        shardId = player.shardId
-                    )
+                    player_model = Players(playerId=player.key_id, shardId=player.shardId)
                 player_model.name = player.name
                 player_model.rankPoints = player.stats['rankPoints']
                 player_model.gamesPlayed = player.stats['gamesPlayed']
                 player_model.guildTag = player.stats['guildTag']
                 player_model.karmaLevel = player.stats['karmaLevel']
                 player_model.level = player.stats['level']
-                player_model.updatedAt = datetime.datetime.now()
+                player_model.updatedAt = datetime.now()
                 db.session.add(player_model)
                 db.session.flush()
+
+                # ヒーローID取得
+                actor = participant.actor
+                hero = MHeros.query.filter(MHeros.actor == actor).first()
+                if hero is None:
+                    db.session.add(MHeros(actor=actor, ja=actor, en=actor))
+                    db.session.flush()
 
                 rank_point_key = 'ranked'
                 if match.gameMode == '5v5_pvp_ranked' or match.gameMode == '5v5_pvp_casual':
@@ -178,79 +215,43 @@ def process_match(match):
                 rank_point = player_model.rankPoints[rank_point_key]
                 rank = get_rank(rank_point)
                 total_rank_points = total_rank_points + rank_point
-                items = participant.stats['items']
-                analyzed_build = analyze_build(items)
                 participant_model = Participants(
-                    match_id = match_model.id,
-                    roster_id = roster_model.id,
-                    player_id = player_model.id,
-                    player_name = player_model.name,
-                    rankPoint = rank_point,
-                    rank = rank,
-                    actor = participant.actor,
-                    kills = participant.stats['kills'],
-                    assists = participant.stats['assists'],
-                    deaths = participant.stats['deaths'],
-                    gold = participant.stats['gold'],
-                    minionKills = participant.stats['minionKills'],
-                    jungleKills = participant.stats['jungleKills'],
-                    nonJungleMinionKills = participant.stats['nonJungleMinionKills'],
-                    items = items,
-                    itemUses = participant.stats['itemUses'],
-                    is_wp_build = analyzed_build['is_wp_build'],
-                    is_cp_build = analyzed_build['is_cp_build'],
-                    is_hybrid_build = analyzed_build['is_hybrid_build'],
-                    is_utility_build = analyzed_build['is_utility_build'],
-                    wentAfk = participant.stats['wentAfk'],
-                    skinKey = participant.stats['skinKey'],
-                    winner = participant.stats['winner'],
+                    match_id=match_model.id,
+                    roster_id=roster_model.id,
+                    player_id=player_model.id,
+                    player_name=player_model.name,
+                    rankPoint=rank_point,
+                    rank=rank,
+                    hero_id=hero.id,
+                    actor=actor,
+                    kills=participant.stats['kills'],
+                    assists=participant.stats['assists'],
+                    deaths=participant.stats['deaths'],
+                    gold=participant.stats['gold'],
+                    minionKills=participant.stats['minionKills'],
+                    jungleKills=participant.stats['jungleKills'],
+                    nonJungleMinionKills=participant.stats['nonJungleMinionKills'],
+                    items=participant.stats['items'],
+                    itemUses=participant.stats['itemUses'],
+                    build_type=get_build_type(participant.stats['items']),
+                    wentAfk=participant.stats['wentAfk'],
+                    skinKey=participant.stats['skinKey'],
+                    winner=participant.stats['winner'],
                 )
-                db.session.add(participant_model)
-                db.session.flush()
-
                 participant_models.append(participant_model)
 
-            # ロール計算
-            if match.gameMode == 'ranked':
-                # 3v3
-                sorted_models = sorted(participant_models, key=lambda x:x.minionKills, reverse=True)
-                carry_model = sorted_models[0]
-                carry_model.role = 'laner'
-                db.session.add(carry_model)
-                jungler_model = sorted_models[1]
-                jungler_model.role = 'jungler'
-                db.session.add(jungler_model)
-                captain_model = sorted_models[2]
-                if captain_model.is_wp_build == 1 or captain_model.is_cp_build == 1:
-                    # 低階層などのキャプテン無し構成
-                    captain_model.role = 'jungler'
-                else:
-                    captain_model.role = 'captain'
-                db.session.add(captain_model)
-            elif match.gameMode == '5v5_pvp_ranked':
-                # 5v5
-                jungle_or_captain = []
-                sorted_models = sorted(participant_models, key=lambda x:[x.nonJungleMinionKills, x.jungleKills], reverse=True)
-                for idx in range(len(sorted_models)):
-                    participant_model = sorted_models[idx]
-                    if idx <= 2:
-                        participant_model.role = 'laner'
-                        db.session.add(participant_model)
-                    else:
-                        jungle_or_captain.append(participant_model)
+            db.session.add_all(participant_models)
+            db.session.flush()
 
-                sorted_model = sorted(jungle_or_captain, key=lambda x:x.jungleKills, reverse=True)
-                jungle_model = sorted_model[0]
-                jungle_model.role = 'jungler'
-                db.session.add(jungle_model)
-                captain_model = sorted_model[1]
-                captain_model.role = 'captain'
-                db.session.add(captain_model)
+            # ロール割り振り
+            patricipant_models_with_role = _assign_role_to_participants(match.gameMode, participant_models)
+            db.session.add_all(patricipant_models_with_role)
 
-            elif match.gameMode == 'blitz_pvp_ranked':
-                for participant_model in participant_models:
-                    participant_model.role = 'laner'
-                    db.session.add(participant_model)
+            participant_models_by_rosters.append(patricipant_models_with_role)
+
+            # ヒーロー統計データ蓄積
+            stat_hero_models = _create_stat_heros(match_model, patricipant_models_with_role)
+            db.session.add_all(stat_hero_models)
 
             # 各サイドの平均ランクを保存
             roster_model.averageRankedPoint = total_rank_points / player_count
@@ -258,130 +259,198 @@ def process_match(match):
             db.session.add(roster_model)
             db.session.flush()
 
-        # 試合を処理したら処理件数(この場合は常に1)を返す
+        # シナジーデータ蓄積
+        hero_synergy_models = _create_hero_synergy(match_model, participant_models_by_rosters)
+        db.session.add_all(hero_synergy_models)
+
         db.session.commit()
+
+        # 試合を処理したら処理件数(この場合は常に1)を返す
         return 1
     except:
         app.logger.error(traceback.print_exc())
         db.session.rollback()
         return 0
 
-g.item_master = None
-def analyze_build(items):
-    """
-    アイテムからビルドを分析して返す
-    """
-    if g.item_master is None:
-        g.item_master = {}
-        m_items = MItems.query.all()
-        for m_item in m_items:
-            g.item_master[m_item.name] = m_item
 
-    wp_tier_count = 0
-    cp_tier_count = 0
-    utility_tier_count = 0
-    for item in items:
-        m_item = g.item_master[item]
-        if m_item is not None:
-            if m_item.build_type is None:
-                continue
-            elif m_item.build_type == 'wp':
-                wp_tier_count = wp_tier_count + m_item.tier
-            elif m_item.build_type == 'cp':
-                cp_tier_count = cp_tier_count + m_item.tier
-            elif m_item.build_type == 'support':
-                utility_tier_count = utility_tier_count + m_item.tier
-
-    is_wp_build = 0
-    is_cp_build = 0
-    is_hybrid_build = 0
-    is_utility_build = 0
-    max_tier = max(wp_tier_count, cp_tier_count, utility_tier_count)
-    if max_tier != 0:
-        if max_tier == wp_tier_count and max_tier == cp_tier_count:
-            is_hybrid_build = 1
-        elif max_tier == wp_tier_count:
-            is_wp_build = 1
-            if cp_tier_count >= 3:
-                is_hybrid_build = 1
-        elif max_tier == cp_tier_count:
-            is_cp_build = 1
-            if wp_tier_count >= 3:
-                is_hybrid_build = 1
-        elif max_tier == utility_tier_count:
-            is_utility_build = 1
-
-    return {
-        'is_wp_build': is_wp_build,
-        'is_cp_build': is_cp_build,
-        'is_hybrid_build': is_hybrid_build,
-        'is_utility_build': is_utility_build
-    }  
-
-def get_rank(point):
+def _assign_role_to_participants(gamemode, participant_models):
     """
-    ランクポイントからランクを返す
+    各プレイヤーのCSやビルドからロールを割り振る
     """
-    if point >= 2800:
-        return 10 # 10g
-    elif point >= 2600:
-        return 10 # 10s
-    elif point >= 2400:
-        return 10 # 10b
-    elif point >= 2267:
-        return 9 # 9g
-    elif point >= 2134:
-        return 9 # 9s
-    elif point >= 2000:
-        return 9 # 9b
-    elif point >= 1933:
-        return 8 # 8g
-    elif point >= 1867:
-        return 8 # 8s
-    elif point >= 1800:
-        return 8 # 8b
-    elif point >= 1733:
-        return 7 # 7g
-    elif point >= 1667:
-        return 7 # 7s
-    elif point >= 1600:
-        return 7 # 7b
-    elif point >= 1533:
-        return 6 # 6g
-    elif point >= 1467:
-        return 6 # 6s
-    elif point >= 1400:
-        return 6 # 6b
-    elif point >= 1350:
-        return 5 # 5g
-    elif point >= 1300:
-        return 5 # 5s
-    elif point >= 1250:
-        return 5 # 5b
-    elif point >= 1200:
-        return 4 # 4g
-    elif point >= 1090:
-        return 4 # 4s
-    elif point >= 981:
-        return 4 # 4b
-    elif point >= 872:
-        return 3 # 3g
-    elif point >= 763:
-        return 3 # 3s
-    elif point >= 654:
-        return 3 # 3b
-    elif point >= 545:
-        return 2 # 2g
-    elif point >= 436:
-        return 2 # 2s
-    elif point >= 327:
-        return 2 # 2b
-    elif point >= 218:
-        return 1 # 1g
-    elif point >= 109:
-        return 1 # 1s
-    else:
-        return 1 # 1b
+    patricipant_models_with_role = []
+    if gamemode == 'ranked':
+        # 3v3
+        sorted_models = sorted(participant_models, key=lambda x:x.minionKills, reverse=True)
+        carry_model = sorted_models[0]
+        carry_model.role = 'LANE'
+        patricipant_models_with_role.append(carry_model)
+
+        jungler_model = sorted_models[1]
+        jungler_model.role = 'JUNGLE'
+        patricipant_models_with_role.append(jungler_model)
+
+        captain_model = sorted_models[2]
+        if captain_model.build_type == 'WP' or captain_model.build_type == 'CP':
+            # 低階層などのキャプテン無し構成
+            captain_model.role = 'JUNGLE'
+        else:
+            captain_model.role = 'CAPTAIN'
+        patricipant_models_with_role.append(captain_model)
+
+    elif gamemode == '5v5_pvp_ranked':
+        # 5v5
+        jungle_or_captain = []
+        sorted_models = sorted(participant_models, key=lambda x:[x.nonJungleMinionKills, x.jungleKills], reverse=True)
+        for idx in range(len(sorted_models)):
+            participant_model = sorted_models[idx]
+            if idx <= 2:
+                participant_model.role = 'LANE'
+                patricipant_models_with_role.append(participant_model)
+            else:
+                jungle_or_captain.append(participant_model)
+
+        sorted_model = sorted(jungle_or_captain, key=lambda x:x.jungleKills, reverse=True)
+        jungle_model = sorted_model[0]
+        jungle_model.role = 'JUNGLE'
+        patricipant_models_with_role.append(jungle_model)
+        captain_model = sorted_model[1]
+        captain_model.role = 'CAPTAIN'
+        patricipant_models_with_role.append(captain_model)
+
+    elif gamemode == 'blitz_pvp_ranked':
+        # 電撃モード
+        for participant_model in participant_models:
+            participant_model.role = 'LANE'
+            patricipant_models_with_role.append(participant_model)
+    
+    return patricipant_models_with_role
+
+
+def _create_stat_heros(match_model, participant_models):
+    """
+    ヒーロー統計を計算し、更新があった行を返す
+    """
+    stat_hero_models = []
+    for participant_model in participant_models:
+        stat_hero_model = StatHeros.query_one_or_init({
+            'hero_id': participant_model.hero_id,
+            'patchVersion': match_model.patchVersion,
+            'gameMode': match_model.gameMode,
+            'week': get_week_start_date(match_model.createdAt),
+            'shardId': match_model.shardId,
+            'rank': participant_model.rank,
+            'role': participant_model.role,
+            'duration_type': get_duration_type(match_model.duration),
+            'build_type': participant_model.build_type
+        })
+        stat_hero_model.games += 1
+        if participant_model.winner == True:
+            stat_hero_model.wins += 1
+        stat_hero_model.win_rate = stat_hero_model.wins / stat_hero_model.games
+
+        stat_hero_models.append(stat_hero_model)
+
+    return stat_hero_models
+
+
+def _create_hero_synergy(match_model, participant_models_by_rosters):
+    """
+    ヒーロー相性統計を計算し、更新があった行を返す
+    """
+    # 更新があったモデルリスト
+    hero_synergy_models = []
+
+    # 相性計算で使う
+    synergy_base_by_hero = {}
+
+    # まずはヒーロー単体での勝率を取得する
+    for k in range(0, len(participant_models_by_rosters)):
+        participant_models = participant_models_by_rosters[k]
+
+        for i in range(0, len(participant_models)):
+            p1 = participant_models[i]
+            synergy_base = StatSynergy.query_one_or_init({
+                'patchVersion': match_model.patchVersion,
+                'gameMode': match_model.gameMode,
+                'hero_id_1': p1.hero_id,
+                'role_1': p1.role,
+                'hero_id_2': None,
+                'role_2': None,
+                'is_enemy': False
+            })
+            synergy_base.games += 1
+            if p1.winner == True:
+                synergy_base.wins += 1
+            synergy_base.win_rate = synergy_base.wins / synergy_base.games
+
+            synergy_base_by_hero[p1.actor] = synergy_base
+            hero_synergy_models.append(synergy_base)
+
+    # 敵／味方との相性
+    for k in range(0, len(participant_models_by_rosters)):
+        participant_models = participant_models_by_rosters[k]
+        participant_models_enemy = participant_models_by_rosters[1 - k]
+        for i in range(0, len(participant_models)):
+            p1 = participant_models[i]
+
+            # 味方との相性
+            for j in range(0, len(participant_models)):
+                p2 = participant_models[j]
+
+                if p1 == p2:
+                    continue
+
+                synergy_ally = StatSynergy.query_one_or_init({
+                    'patchVersion': match_model.patchVersion,
+                    'gameMode': match_model.gameMode,
+                    'hero_id_1': p1.hero_id,
+                    'role_1': p1.role,
+                    'hero_id_2': p2.hero_id,
+                    'role_2': p2.role,
+                    'is_enemy': False
+                })
+                synergy_ally.games += 1
+                if p1.winner == True:
+                    synergy_ally.wins += 1
+                synergy_ally.win_rate = synergy_ally.wins / synergy_ally.games
+
+                # シナジー計算(味方)
+                if synergy_ally.games >= 50:
+                    me = synergy_base_by_hero[p1.actor]
+                    ally = synergy_base_by_hero[p2.actor]
+                    if me.win_rate != 0 and ally.win_rate != 0:
+                        synergy_ally.synergy = (synergy_ally.win_rate * 2) / ((me.win_rate * 2) * (ally.win_rate * 2))
+
+                hero_synergy_models.append(synergy_ally)
+
+            # 敵との相性
+            for j in range(0, len(participant_models_enemy)):
+                p2 = participant_models_enemy[j]
+                synergy_enemy = StatSynergy.query_one_or_init({
+                    'patchVersion': match_model.patchVersion,
+                    'gameMode': match_model.gameMode,
+                    'hero_id_1': p1.hero_id,
+                    'role_1': p1.role,
+                    'hero_id_2': p2.hero_id,
+                    'role_2': p2.role,
+                    'is_enemy': True
+                })
+                synergy_enemy.games += 1
+                if p1.winner == True:
+                    synergy_enemy.wins += 1
+                synergy_enemy.win_rate = synergy_enemy.wins / synergy_enemy.games
+
+                # シナジー計算(敵)
+                if synergy_enemy.games >= 50:
+                    me = synergy_base_by_hero[p1.actor]
+                    enemy = synergy_base_by_hero[p2.actor]
+                    if me.win_rate != 0 and enemy.win_rate != 1:
+                        synergy_enemy.synergy = (synergy_enemy.win_rate * 2) / ((me.win_rate * 2) * ((1 - enemy.win_rate) * 2))
+
+                hero_synergy_models.append(synergy_enemy)
+
+    return hero_synergy_models
+
 
 # 実行！
 main(gamemode, region)
