@@ -1,19 +1,18 @@
 from app.database import db
 from sqlalchemy.types import JSON, VARCHAR, INT, DECIMAL, DATETIME, BOOLEAN
 
-class StatHeros(db.Model):
+class StatHerosDuration(db.Model):
 
-    __tablename__ = 'stat_heros'
+    __tablename__ = 'stat_heros_duration'
 
     id = db.Column(INT, primary_key=True)
     patchVersion = db.Column(DECIMAL)
-    shardId = db.Column(VARCHAR)
     gameMode = db.Column(VARCHAR)
-    week = db.Column(DATETIME)
+    shardId = db.Column(VARCHAR)
     hero_id = db.Column(INT)
-    rank = db.Column(INT)
     role = db.Column(VARCHAR)
     build_type = db.Column(VARCHAR)
+    duration_type = db.Column(INT)
     games = db.Column(INT)
     wins = db.Column(INT)
     win_rate = db.Column(DECIMAL)
@@ -22,26 +21,24 @@ class StatHeros(db.Model):
         """
         find one result. create new one if there's no result.
         """
-        model = StatHeros.query.filter(
-            StatHeros.hero_id == params['hero_id'],
-            StatHeros.patchVersion == params['patchVersion'],
-            StatHeros.gameMode == params['gameMode'],
-            StatHeros.week == params['week'],
-            StatHeros.shardId == params['shardId'],
-            StatHeros.rank == params['rank'],
-            StatHeros.role == params['role'],
-            StatHeros.build_type == params['build_type']
+        model = StatHerosDuration.query.filter(
+            StatHerosDuration.patchVersion == params['patchVersion'],
+            StatHerosDuration.gameMode == params['gameMode'],
+            StatHerosDuration.shardId == params['shardId'],
+            StatHerosDuration.hero_id == params['hero_id'],
+            StatHerosDuration.role == params['role'],
+            StatHerosDuration.build_type == params['build_type'],
+            StatHerosDuration.duration_type == params['duration_type'],
         ).first()
         if model is None:
-            model = StatHeros(
-                hero_id=params['hero_id'],
+            model = StatHerosDuration(
                 patchVersion=params['patchVersion'],
                 gameMode=params['gameMode'],
-                week=params['week'],
                 shardId=params['shardId'],
-                rank=params['rank'],
+                hero_id=params['hero_id'],
                 role=params['role'],
                 build_type=params['build_type'],
+                duration_type=params['duration_type'],
                 games=0,
                 wins=0
             )

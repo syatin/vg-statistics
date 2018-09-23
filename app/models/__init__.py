@@ -5,6 +5,7 @@ from .participants import Participants
 from .players import Players
 from .rosters import Rosters
 from .stat_heros import StatHeros
+from .stat_heros_duration import StatHerosDuration
 from .stat_synergy import StatSynergy
 from .vgpro_leaderboard import VgproLeaderboard
 
@@ -16,6 +17,7 @@ __all__ = [
     Players,
     Rosters,
     StatHeros,
+    StatHerosDuration,
     StatSynergy,
     VgproLeaderboard
 ]

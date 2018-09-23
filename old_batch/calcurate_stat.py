@@ -19,7 +19,7 @@ from datetime import datetime, date, timedelta
 gamemode = '5v5_pvp_ranked'
 
 def main(gamemode):
-    match_model_list = Matches.query.filter(Matches.gameMode == gamemode).\
+    match_model_list = Matches.query.filter(Matches.gameMode == gamemode, Matches.id >= 742).\
         order_by(Matches.id).all()
 
     for match_model in match_model_list:

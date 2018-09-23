@@ -57,3 +57,39 @@ SELECT `h`.`ja` AS `サポートビルド(5v5, EA)`,
 HAVING COUNT(`p`.`id`) >= 50
  ORDER BY `勝率` DESC
 ;
+
+# 敵との相性
+SELECT `s`.`patchVersion`, `s`.`gameMode`, 
+       `h1`.`ja`, `s`.`role_1`,
+       `h2`.`ja`, `s`.`role_2`,
+       `s`.`is_enemy`,
+       `s`.`games`, `s`.`win_rate`, `s`.`synergy`
+  FROM `stat_synergy` `s`
+  JOIN `m_heros` `h1`
+    ON `h1`.`id` = `s`.`hero_id_1`
+  JOIN `m_heros` `h2`
+    ON `h2`.`id` = `s`.`hero_id_2`
+ WHERE `s`.`gameMode` = '5v5_pvp_ranked'
+   AND `s`.`patchVersion` = '3.7'
+   AND `s`.`games` > 100
+   AND `s`.`is_enemy` = 0
+ ORDER BY `s`.`synergy` DESC
+;
+
+# 味方との相性
+SELECT `s`.`patchVersion`, `s`.`gameMode`, 
+       `h1`.`ja`, `s`.`role_1`,
+       `h2`.`ja`, `s`.`role_2`,
+       `s`.`is_enemy`,
+       `s`.`games`, `s`.`win_rate`, `s`.`synergy`
+  FROM `stat_synergy` `s`
+  JOIN `m_heros` `h1`
+    ON `h1`.`id` = `s`.`hero_id_1`
+  JOIN `m_heros` `h2`
+    ON `h2`.`id` = `s`.`hero_id_2`
+ WHERE `s`.`gameMode` = '5v5_pvp_ranked'
+   AND `s`.`patchVersion` = '3.7'
+   AND `s`.`games` > 100
+   AND `s`.`is_enemy` = 0
+ ORDER BY `s`.`synergy` DESC
+;

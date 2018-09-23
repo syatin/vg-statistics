@@ -3,7 +3,7 @@ import sys, traceback, time
 
 from app.app import app
 from app.database import db
-from app.models import MHeros, MItems, Matches, Players, Participants, Rosters, StatHeros, StatSynergy
+from app.models import MHeros, MItems, Matches, Players, Participants, Rosters, StatHeros, StatHerosDuration, StatSynergy
 from app.util import get_rank, get_build_type, get_week_start_date, get_duration_type
 
 from flask import Flask, request, g
@@ -340,15 +340,27 @@ def _create_stat_heros(match_model, participant_models):
             'shardId': match_model.shardId,
             'rank': participant_model.rank,
             'role': participant_model.role,
-            'duration_type': get_duration_type(match_model.duration),
             'build_type': participant_model.build_type
         })
+        stat_hero_duration_model = StatHerosDuration.query_one_or_init({
+            'patchVersion': match_model.patchVersion,
+            'gameMode': match_model.gameMode,
+            'shardId': match_model.shardId,
+            'hero_id': participant_model.hero_id,
+            'role': participant_model.role,
+            'build_type': participant_model.build_type,
+            'duration_type': get_duration_type(match_model.duration)
+        })
         stat_hero_model.games += 1
+        stat_hero_duration_model.games += 1
         if participant_model.winner == True:
             stat_hero_model.wins += 1
+            stat_hero_duration_model.wins += 1
         stat_hero_model.win_rate = stat_hero_model.wins / stat_hero_model.games
+        stat_hero_duration_model.win_rate = stat_hero_duration_model.wins / stat_hero_duration_model.games
 
         stat_hero_models.append(stat_hero_model)
+        stat_hero_models.append(stat_hero_duration_model)
 
     return stat_hero_models
 
