@@ -103,7 +103,7 @@ def retrieve_match_history(gamemode, region, created_at):
                 'filter[createdAt-start]': created_at,
                 'page[limit]': LIMIT,
                 'page[offset]': offset
-            }, region = region)
+            }, region=region)
             if matches is not None:
                 processed_count = 0
                 for match in matches:
@@ -201,7 +201,8 @@ def process_match(match):
                 actor = participant.actor
                 hero = MHeros.query.filter(MHeros.actor == actor).first()
                 if hero is None:
-                    db.session.add(MHeros(actor=actor, ja=actor, en=actor))
+                    hero = MHeros(actor=actor, ja=actor, en=actor)
+                    db.session.add(hero)
                     db.session.flush()
 
                 rank_point_key = 'ranked'
