@@ -98,7 +98,6 @@ CREATE TABLE `stat_heros` (
   `rank` tinyint(4) DEFAULT NULL,
   `role` enum('LANE','JUNGLE','CAPTAIN') DEFAULT NULL,
   `build_type` enum('WP','CP','HYBRID','UTILITY') DEFAULT NULL,
-  `duration_type` tinyint(4) DEFAULT NULL COMMENT '10, 15, 20, 25, 30, 35..',
   `games` int(11) DEFAULT NULL,
   `wins` int(11) DEFAULT NULL,
   `win_rate` decimal(5,2) DEFAULT NULL,
@@ -106,6 +105,23 @@ CREATE TABLE `stat_heros` (
   KEY `hero_id` (`hero_id`,`patchVersion`,`gameMode`,`shardId`,`week`),
   KEY `hero_id_2` (`hero_id`,`patchVersion`,`gameMode`,`week`),
   CONSTRAINT `stat_heros_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heros` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `stat_heros_duration` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `patchVersion` decimal(10,1) DEFAULT NULL,
+  `shardId` varchar(3) DEFAULT NULL,
+  `gameMode` varchar(16) DEFAULT NULL,
+  `hero_id` int(11) unsigned DEFAULT NULL,
+  `role` enum('LANE','JUNGLE','CAPTAIN') DEFAULT NULL,
+  `build_type` enum('WP','CP','HYBRID','UTILITY') DEFAULT NULL,
+  `duration_type` tinyint(4) DEFAULT NULL COMMENT '10, 15, 20, 25, 30, 35..',
+  `games` int(11) DEFAULT NULL,
+  `wins` int(11) DEFAULT NULL,
+  `win_rate` decimal(5,2) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `hero_id` (`hero_id`,`patchVersion`,`gameMode`),
+  CONSTRAINT `stat_heros_duratiion_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heros` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `stat_synergy` (
@@ -122,7 +138,11 @@ CREATE TABLE `stat_synergy` (
   `win_rate` decimal(5,2) DEFAULT NULL,
   `synergy` decimal(5,2) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `patchVersion` (`patchVersion`,`gameMode`,`hero_id_1`,`role_1`,`is_enemy`)
+  KEY `patchVersion` (`patchVersion`,`gameMode`,`hero_id_1`,`role_1`,`is_enemy`),
+  KEY `hero_id_1` (`hero_id_1`),
+  KEY `hero_id_2` (`hero_id_2`),
+  CONSTRAINT `stat_synergy_ibfk_1` FOREIGN KEY (`hero_id_1`) REFERENCES `m_heros` (`id`),
+  CONSTRAINT `stat_synergy_ibfk_2` FOREIGN KEY (`hero_id_2`) REFERENCES `m_heros` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create syntax for TABLE 'vgpro_leaderboard'
