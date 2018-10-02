@@ -156,6 +156,7 @@ def process_match(match):
 
         # シナジーデータ計算用に Participant モデルのリストを保持する
         participant_models_by_rosters = []
+        is_rank7_or_more = True
 
         for roster in match.rosters:
             roster_model = Rosters(
@@ -260,9 +261,13 @@ def process_match(match):
             db.session.add(roster_model)
             db.session.flush()
 
+            if roster_model.averageRank < 7:
+                is_rank7_or_more = False
+
         # シナジーデータ蓄積
-        hero_synergy_models = _create_hero_synergy(match_model, participant_models_by_rosters)
-        db.session.add_all(hero_synergy_models)
+        if is_rank7_or_more:
+            hero_synergy_models = _create_hero_synergy(match_model, participant_models_by_rosters)
+            db.session.add_all(hero_synergy_models)
 
         db.session.commit()
 

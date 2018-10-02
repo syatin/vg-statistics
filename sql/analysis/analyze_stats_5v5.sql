@@ -46,6 +46,26 @@ SELECT `s`.`patchVersion`, `s`.`gameMode`,
  ORDER BY `s`.`synergy` DESC
 ;
 
+# カスタマイズ例：キャプテンローレライと味方の相性
+SELECT `s`.`patchVersion` AS 'Patch',
+       `s`.`gameMode` AS 'GameMode',
+       `h1`.`en` AS 'Hero 1', `s`.`role_1` AS 'Role 1',
+       `h2`.`en` AS 'Hero 2', `s`.`role_2` AS 'Role 2',
+       `s`.`games` AS 'Games', `s`.`win_rate` AS 'Win Rate', `s`.`synergy` AS 'Synergy'
+  FROM `stat_synergy` `s`
+  JOIN `m_heros` `h1`
+    ON `h1`.`id` = `s`.`hero_id_1`
+  JOIN `m_heros` `h2`
+    ON `h2`.`id` = `s`.`hero_id_2`
+ WHERE `s`.`gameMode` = '5v5_pvp_ranked'
+   AND `s`.`patchVersion` = '3.7'
+   AND `s`.`games` > 150
+   AND `s`.`is_enemy` = 0
+   AND `h1`.`ja` = 'ローレライ'
+   AND `s`.`role_1` = 'CAPTAIN'
+ ORDER BY `s`.`synergy` DESC
+;
+
 ########################################
 # 生データからの直接集計
 ########################################
