@@ -34,28 +34,28 @@ class DevelopmentConfig:
 Config = DevelopmentConfig
 ```
 6. テーブル作成
-    - `sql/create_tables.sql`
-    - `sql/m_heros_2018-09-14.sql`
-    - `sql/m_items_2018-09-14.sql`
+    - `sql/00-create_m_heros_2018-09-14.sql`
+    - `sql/01-create_m_items_2018-09-14.sql`
+    - `sql/02-create_tables.sql`
 
 ## 試合履歴の取得
 
 ```sh
 # 3v3 地域別
-nohup python get_match_history.py ranked na >> get_match_history_3v3_na.log &
-nohup python get_match_history.py ranked eu >> get_match_history_3v3_eu.log &
-nohup python get_match_history.py ranked ea >> get_match_history_3v3_ea.log &
-nohup python get_match_history.py ranked sg >> get_match_history_3v3_sg.log &
-nohup python get_match_history.py ranked sa >> get_match_history_3v3_sa.log &
-nohup python get_match_history.py ranked cn >> get_match_history_3v3_cn.log &
+nohup python get_match_history.py ranked na >> log/get_match_history_3v3_na.log & echo $! > 3v3_na.pid
+nohup python get_match_history.py ranked eu >> log/get_match_history_3v3_eu.log & echo $! > 3v3_eu.pid
+nohup python get_match_history.py ranked ea >> log/get_match_history_3v3_ea.log & echo $! > 3v3_ea.pid
+nohup python get_match_history.py ranked sg >> log/get_match_history_3v3_sg.log & echo $! > 3v3_sg.pid
+nohup python get_match_history.py ranked sa >> log/get_match_history_3v3_sa.log & echo $! > 3v3_sa.pid
+nohup python get_match_history.py ranked cn >> log/get_match_history_3v3_cn.log & echo $! > 3v3_cn.pid
 
 # 5v5 地域別
-nohup python get_match_history.py ranked5v5 na >> get_match_history_5v5_na.log &
-nohup python get_match_history.py ranked5v5 eu >> get_match_history_5v5_eu.log &
-nohup python get_match_history.py ranked5v5 ea >> get_match_history_5v5_ea.log &
-nohup python get_match_history.py ranked5v5 sg >> get_match_history_5v5_sg.log &
-nohup python get_match_history.py ranked5v5 sa >> get_match_history_5v5_sa.log &
-nohup python get_match_history.py ranked5v5 cn >> get_match_history_5v5_cn.log &
+nohup python get_match_history.py ranked5v5 na >> log/get_match_history_5v5_na.log & echo $! > 5v5_na.pid
+nohup python get_match_history.py ranked5v5 eu >> log/get_match_history_5v5_eu.log & echo $! > 5v5_eu.pid
+nohup python get_match_history.py ranked5v5 ea >> log/get_match_history_5v5_ea.log & echo $! > 5v5_ea.pid
+nohup python get_match_history.py ranked5v5 sg >> log/get_match_history_5v5_sg.log & echo $! > 5v5_sg.pid
+nohup python get_match_history.py ranked5v5 sa >> log/get_match_history_5v5_sa.log & echo $! > 5v5_sa.pid
+nohup python get_match_history.py ranked5v5 cn >> log/get_match_history_5v5_cn.log & echo $! > 5v5_cn.pid
 ```
 
 ## リーダーボード取得バッチ
