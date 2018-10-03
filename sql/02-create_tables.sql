@@ -15,6 +15,41 @@ CREATE TABLE `matches` (
   KEY `gameMode_2` (`gameMode`,`createdAt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- Create syntax for TABLE 'rosters'
+CREATE TABLE `rosters` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `match_id` int(11) unsigned DEFAULT NULL,
+  `acesEarned` int(11) DEFAULT NULL,
+  `gold` int(11) DEFAULT NULL,
+  `heroKills` int(11) DEFAULT NULL,
+  `krakenCaptures` int(11) DEFAULT NULL,
+  `side` varchar(16) DEFAULT NULL,
+  `turretKills` int(11) DEFAULT NULL,
+  `turretsRemaining` int(11) DEFAULT NULL,
+  `won` tinyint(1) DEFAULT NULL,
+  `averageRankedPoint` int(11) DEFAULT NULL,
+  `averageRank` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `match_id` (`match_id`),
+  CONSTRAINT `rosters_ibfk_1` FOREIGN KEY (`match_id`) REFERENCES `matches` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Create syntax for TABLE 'players'
+CREATE TABLE `players` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `playerId` varchar(64) DEFAULT NULL,
+  `name` varchar(64) DEFAULT NULL,
+  `shardId` varchar(3) DEFAULT NULL,
+  `gamesPlayed` json DEFAULT NULL,
+  `guildTag` varchar(32) DEFAULT NULL,
+  `karmaLevel` int(11) DEFAULT NULL,
+  `level` int(11) DEFAULT NULL,
+  `rankPoints` json DEFAULT NULL,
+  `updatedAt` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `playerId` (`playerId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- Create syntax for TABLE 'participants'
 CREATE TABLE `participants` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -51,41 +86,6 @@ CREATE TABLE `participants` (
   KEY `match_id` (`match_id`,`player_id`),
   CONSTRAINT `participants_ibfk_1` FOREIGN KEY (`roster_id`) REFERENCES `rosters` (`id`),
   CONSTRAINT `participants_ibfk_3` FOREIGN KEY (`hero_id`) REFERENCES `m_heros` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Create syntax for TABLE 'players'
-CREATE TABLE `players` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `playerId` varchar(64) DEFAULT NULL,
-  `name` varchar(64) DEFAULT NULL,
-  `shardId` varchar(3) DEFAULT NULL,
-  `gamesPlayed` json DEFAULT NULL,
-  `guildTag` varchar(32) DEFAULT NULL,
-  `karmaLevel` int(11) DEFAULT NULL,
-  `level` int(11) DEFAULT NULL,
-  `rankPoints` json DEFAULT NULL,
-  `updatedAt` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `playerId` (`playerId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Create syntax for TABLE 'rosters'
-CREATE TABLE `rosters` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `match_id` int(11) unsigned DEFAULT NULL,
-  `acesEarned` int(11) DEFAULT NULL,
-  `gold` int(11) DEFAULT NULL,
-  `heroKills` int(11) DEFAULT NULL,
-  `krakenCaptures` int(11) DEFAULT NULL,
-  `side` varchar(16) DEFAULT NULL,
-  `turretKills` int(11) DEFAULT NULL,
-  `turretsRemaining` int(11) DEFAULT NULL,
-  `won` tinyint(1) DEFAULT NULL,
-  `averageRankedPoint` int(11) DEFAULT NULL,
-  `averageRank` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `match_id` (`match_id`),
-  CONSTRAINT `rosters_ibfk_1` FOREIGN KEY (`match_id`) REFERENCES `matches` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `stat_heros` (
