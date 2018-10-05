@@ -43,3 +43,32 @@ SELECT `m`.`shardId`, `m`.`gamemode` AS `ゲームモード`, `r`.`averageRank`,
   ORDER BY m.createdAt DESC
   LIMIT 10
 ;
+
+# 試合時間別の勝率
+SELECT `sd`.`patchVersion`,
+       `sd`.`shardId`,
+       `sd`.`gameMode`,
+       `h`.`ja` AS `ヒーロー`,
+       `sd`.`role` AS `ロール`,
+       `sd`.`build_type` AS `ビルド`,
+       `sd`.`duration_type` AS `試合時間（分）`,
+       `sd`.`games` AS `試合数`,
+       `sd`.`win_rate` AS `勝率`
+  FROM `stat_heros_duration` `sd`
+  JOIN `m_heros` `h`
+    ON `sd`.`hero_id` = `h`.`id`
+  LEFT OUTER JOIN `stat_heros` `s`
+    ON `s`.`patchVersion` = `sd`.`patchVersion`
+   AND `s`.`shardId` = `sd`.`shardId`
+   AND `s`.`gameMode` = `sd`.`gameMode`
+   AND `s`.`hero_id` = `sd`.`hero_id`
+   AND `s`.`role` = `sd`.`role`
+   AND `s`.`build_type` = `sd`.`build_type`
+   AND `s`.`rank` = 9
+   AND `s`.`week` = '2018-09-17'
+   AND `s`.`games` > 100
+ WHERE `s`.`id` IS NOT NULL
+ # AND `s`.`role` = 'LANE' 
+ # AND `s`.`build_type` = 'CP'
+ ORDER BY `sd`.`gameMode`, `sd`.`shardId`, `sd`.`hero_id`, `sd`.`role`, `sd`.`build_type`, `sd`.`duration_type`
+;

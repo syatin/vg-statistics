@@ -47,11 +47,11 @@ SELECT `s`.`patchVersion`, `s`.`gameMode`,
 ;
 
 # カスタマイズ例：キャプテンローレライと味方の相性
-SELECT `s`.`patchVersion` AS 'Patch',
-       `s`.`gameMode` AS 'GameMode',
-       `h1`.`en` AS 'Hero 1', `s`.`role_1` AS 'Role 1',
-       `h2`.`en` AS 'Hero 2', `s`.`role_2` AS 'Role 2',
-       `s`.`games` AS 'Games', `s`.`win_rate` AS 'Win Rate', `s`.`synergy` AS 'Synergy'
+SELECT `s`.`patchVersion` AS 'パッチ',
+       `s`.`gameMode` AS 'ゲームモード',
+       `h1`.`ja` AS 'ヒーロー1', `s`.`role_1` AS 'ロール1',
+       `h2`.`ja` AS 'ヒーロー2', `s`.`role_2` AS 'ロール2',
+       `s`.`games` AS '試合数', `s`.`win_rate` AS '勝率', `s`.`synergy` AS 'シナジー'
   FROM `stat_synergy` `s`
   JOIN `m_heros` `h1`
     ON `h1`.`id` = `s`.`hero_id_1`

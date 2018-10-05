@@ -1,3 +1,5 @@
+# coding:utf-8
+
 import gamelocker
 import sys, traceback, time
 
