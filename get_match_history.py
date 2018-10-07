@@ -18,7 +18,7 @@ from time import sleep
 
 """
 Usage
-mkdir log
+
 nohup python get_match_history.py ranked na >> log/get_match_history_3v3_na.log & echo $! > 3v3_na.pid
 nohup python get_match_history.py ranked eu >> log/get_match_history_3v3_eu.log & echo $! > 3v3_eu.pid
 nohup python get_match_history.py ranked ea >> log/get_match_history_3v3_ea.log & echo $! > 3v3_ea.pid
@@ -45,7 +45,6 @@ https://developer.vainglorygame.com/docs#get-a-collection-of-players
 - 5v5_pvp_casual
 """
 
-PATCH_VERSION = '3.7'
 LIMIT = 5
 
 args = sys.argv
@@ -101,7 +100,6 @@ def retrieve_match_history(gamemode, region, created_at):
             app.logger.info('retrieving Gamelocker API data : offset = {}'.format(offset))
             api = gamelocker.Gamelocker(app.config['API_KEY']).Vainglory()
             matches = api.matches({
-                'filter[patchVersion]' : PATCH_VERSION,
                 'filter[gameMode]': gamemode,
                 'filter[createdAt-start]': created_at,
                 'page[limit]': LIMIT,
@@ -342,14 +340,14 @@ def _create_stat_heros(match_model, participant_models):
     stat_hero_models = []
     for participant_model in participant_models:
         stat_hero_model = StatHeros.query_one_or_init({
-            'hero_id': participant_model.hero_id,
             'patchVersion': match_model.patchVersion,
             'gameMode': match_model.gameMode,
-            'week': get_week_start_date(match_model.createdAt),
             'shardId': match_model.shardId,
-            'rank': participant_model.rank,
+            'hero_id': participant_model.hero_id,
             'role': participant_model.role,
-            'build_type': participant_model.build_type
+            'build_type': participant_model.build_type,
+            'week': get_week_start_date(match_model.createdAt),
+            'rank': participant_model.rank
         })
         stat_hero_duration_model = StatHerosDuration.query_one_or_init({
             'patchVersion': match_model.patchVersion,
