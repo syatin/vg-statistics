@@ -21,7 +21,8 @@ git管理したくない情報です
 class DevelopmentConfig:
     # Vainglory API key
     # https://developer.vainglorygame.com/apps?locale=en
-    API_KEY = 'あなたのVainglory DEVELOPMENT API KEY をここに貼り付けて下さい'
+    API_KEY_RANKED = 'あなたのVainglory DEVELOPMENT API KEY をここに貼り付けて下さい(ランク用)'
+    API_KEY_CASUAL = 'あなたのVainglory DEVELOPMENT API KEY をここに貼り付けて下さい(カジュアル用)'
 
     # Flask
     DEBUG = True
