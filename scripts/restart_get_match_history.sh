@@ -5,13 +5,13 @@ REGION="$2"
 CURRENT_DIR=`echo $(cd $(dirname $0) && pwd)`
 BASE_DIR="$CURRENT_DIR/.."
 
-if [ -e $BASE_DIR/3v3_$REGION.pid ]; then
+if [ -e $BASE_DIR/3v3_${GAMEMODE}_${REGION}.pid ]; then
     kill `cat $BASE_DIR/3v3_${GAMEMODE}_${REGION}.pid`
     rm -f $BASE_DIR/3v3_${GAMEMODE}_${REGION}.pid
 fi
-if [ -e $BASE_DIR/5v5_$REGION.pid ]; then
+if [ -e $BASE_DIR/5v5_${GAMEMODE}_${REGION}.pid ]; then
     kill `cat $BASE_DIR/5v5_${GAMEMODE}_${REGION}.pid`
-    rm -f $BASE_DIR/5v5_${GAMEMODE}_${REGION}pid
+    rm -f $BASE_DIR/5v5_${GAMEMODE}_${REGION}.pid
 fi
 
 if test $GAMEMODE = "ranked"; then
