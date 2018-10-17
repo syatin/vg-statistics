@@ -53,7 +53,7 @@ if len(args) != 3:
     exit()
 
 gamemode = args[1]
-if gamemode not in  ['ranked', 'ranked5v5', 'blitz']:
+if gamemode not in  ['ranked', 'ranked5v5', 'casual', 'casual5v5', 'blitz']:
     print('{} is not valid gamemode'.format(gamemode))
     exit()
 
@@ -65,6 +65,8 @@ if region not in ['na', 'eu', 'ea', 'sg', 'sa', 'cn']:
 def main(gamemode, region):
     if gamemode == 'ranked5v5':
         gamemode = '5v5_pvp_ranked'
+    if gamemode == 'casual5v5':
+        gamemode = '5v5_pvp_casual'
     if gamemode == 'blitz':
         gamemode = 'blitz_pvp_ranked'
 
@@ -97,8 +99,12 @@ def retrieve_match_history(gamemode, region, created_at):
     app.logger.info('gamemode = {}, createdAt = {}'.format(gamemode, str(created_at)))
     while True:
         try:
+            apikey_index = 'API_KEY_RANKED'
+            if gamemode in ['casual', '5v5_pvp_casual']:
+                apikey_index = 'API_KEY_CASUAL'
+
             app.logger.info('retrieving Gamelocker API data : offset = {}'.format(offset))
-            api = gamelocker.Gamelocker(app.config['API_KEY']).Vainglory()
+            api = gamelocker.Gamelocker(app.config[apikey_index]).Vainglory()
             matches = api.matches({
                 'filter[gameMode]': gamemode,
                 'filter[createdAt-start]': created_at,
