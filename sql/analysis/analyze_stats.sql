@@ -77,7 +77,7 @@ SELECT DATE_FORMAT(`createdAt` + INTERVAL 9 HOUR , '%Y-%m-%d') AS time,
  WHERE `shardId` = 'ea'
    AND `gameMode` = 'ranked'
    AND `createdAt` > DATE('2018-09-20 00:00:00')
-   AND `createdAt` <  (DATE('2018-09-20 00:00:00') + INTERVAL 15 DAY) 
+   AND `createdAt` <  (DATE('2018-09-20 00:00:00') + INTERVAL 15 DAY)
  GROUP BY DATE_FORMAT(`createdAt`, '%Y%m%d')
 ;
 
@@ -99,6 +99,6 @@ SELECT DATE_FORMAT(`createdAt` + INTERVAL 9 HOUR , '%Y-%m-%d') AS time,
        COUNT(*) AS count
   FROM `matches`
  WHERE `createdAt` > DATE('2018-09-23 00:00:00')
-   AND `createdAt` <  (DATE('2018-09-23 00:00:00') + INTERVAL 1 DAY) 
+   AND `createdAt` <  (DATE('2018-09-23 00:00:00') + INTERVAL 7 DAY)
  GROUP BY DATE_FORMAT(`createdAt`, '%Y%m%d'), `shardId`, `gameMode`
 ;

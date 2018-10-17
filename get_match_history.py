@@ -102,6 +102,7 @@ def retrieve_match_history(gamemode, region, created_at):
             matches = api.matches({
                 'filter[gameMode]': gamemode,
                 'filter[createdAt-start]': created_at,
+                #'filter[patchVersion]': '3.8',
                 'page[limit]': LIMIT,
                 'page[offset]': offset
             }, region=region)
@@ -393,10 +394,13 @@ def _create_hero_synergy(match_model, participant_models_by_rosters):
                 'gameMode': match_model.gameMode,
                 'hero_id_1': p1.hero_id,
                 'role_1': p1.role,
+                'build_type_1': p1.build_type,
                 'hero_id_2': None,
                 'role_2': None,
+                'build_type_2': None,
                 'is_enemy': False
             })
+            print(p1.build_type)
             synergy_base.games += 1
             if p1.winner == True:
                 synergy_base.wins += 1
@@ -424,8 +428,10 @@ def _create_hero_synergy(match_model, participant_models_by_rosters):
                     'gameMode': match_model.gameMode,
                     'hero_id_1': p1.hero_id,
                     'role_1': p1.role,
+                    'build_type_1': p1.build_type,
                     'hero_id_2': p2.hero_id,
                     'role_2': p2.role,
+                    'build_type_2': p2.build_type,
                     'is_enemy': False
                 })
                 synergy_ally.games += 1
@@ -450,8 +456,10 @@ def _create_hero_synergy(match_model, participant_models_by_rosters):
                     'gameMode': match_model.gameMode,
                     'hero_id_1': p1.hero_id,
                     'role_1': p1.role,
+                    'build_type_1': p1.build_type,
                     'hero_id_2': p2.hero_id,
                     'role_2': p2.role,
+                    'build_type_2': p2.build_type,
                     'is_enemy': True
                 })
                 synergy_enemy.games += 1

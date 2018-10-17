@@ -1,4 +1,4 @@
-
+from app.database import db
 from app.models import MItems
 from flask import g
 
@@ -17,8 +17,8 @@ def get_build_type(items):
     cp_tier_count = 0
     utility_tier_count = 0
     for item in items:
-        m_item = g.item_master[item]
-        if m_item is not None:
+        if item in g.item_master:
+            m_item = g.item_master[item]
             if m_item.build_type is None:
                 continue
             elif m_item.build_type == 'wp':
@@ -27,6 +27,11 @@ def get_build_type(items):
                 cp_tier_count += m_item.tier
             elif m_item.build_type == 'support':
                 utility_tier_count += m_item.tier
+        else:
+            m_item = MItems(name=item, item_id=item, type='other', tier=0)
+            db.session.add(m_item)
+            db.session.flush()
+            g.item_master[item] = m_item
 
     max_tier = max(wp_tier_count, cp_tier_count, utility_tier_count)
     if max_tier != 0:

@@ -10,8 +10,10 @@ class StatSynergy(db.Model):
     gameMode = db.Column(VARCHAR)
     hero_id_1 = db.Column(INT)
     role_1 = db.Column(VARCHAR)
+    build_type_1 = db.Column(VARCHAR)
     hero_id_2 = db.Column(INT)
     role_2 = db.Column(VARCHAR)
+    build_type_2 = db.Column(VARCHAR)
     is_enemy = db.Column(BOOLEAN)
     games = db.Column(INT)
     wins = db.Column(INT)
@@ -27,8 +29,10 @@ class StatSynergy(db.Model):
             StatSynergy.gameMode == params['gameMode'],
             StatSynergy.hero_id_1 == params['hero_id_1'],
             StatSynergy.role_1 == params['role_1'],
+            StatSynergy.build_type_1 == params['build_type_1'],
             StatSynergy.hero_id_2 == params['hero_id_2'],
             StatSynergy.role_2 == params['role_2'],
+            StatSynergy.build_type_2 == params['build_type_2'],
             StatSynergy.is_enemy == params['is_enemy']
         ).first()
         if (model is None):
@@ -37,8 +41,10 @@ class StatSynergy(db.Model):
                 gameMode=params['gameMode'],
                 hero_id_1=params['hero_id_1'],
                 role_1=params['role_1'],
+                build_type_1=params['build_type_1'],
                 hero_id_2=params['hero_id_2'],
                 role_2=params['role_2'],
+                build_type_2=params['build_type_2'],
                 is_enemy=params['is_enemy'],
                 games=0, wins=0, win_rate=0
             )

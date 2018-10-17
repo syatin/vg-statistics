@@ -3,7 +3,7 @@ SELECT `s`.`week`, `m`.`ja`, `s`.`rank`, `s`.`role`, `s`.`build_type`, `s`.`game
   FROM `stat_heros` `s`
   JOIN `m_heros` `m`
     ON `s`.`hero_id` = `m`.`id`
- WHERE `s`.`patchVersion` = '3.7'
+ WHERE `s`.`patchVersion` = '3.8'
    AND `s`.`gameMode` = '5v5_pvp_ranked'
    AND `s`.`shardId` = 'ea'
    AND `s`.`games` > 50
@@ -20,7 +20,7 @@ SELECT `m`.`ja` AS `ヒーロー（EA, 5v5）`,
   FROM `stat_heros` `s`
   JOIN `m_heros` `m`
     ON `s`.`hero_id` = `m`.`id`
- WHERE `s`.`patchVersion` = '3.7'
+ WHERE `s`.`patchVersion` = '3.8'
    AND `s`.`gameMode` = '5v5_pvp_ranked'
    AND `s`.`shardId` = 'ea'
    AND `s`.`rank` >= 7
@@ -41,7 +41,7 @@ SELECT `s`.`patchVersion`, `s`.`gameMode`,
   JOIN `m_heros` `h2`
     ON `h2`.`id` = `s`.`hero_id_2`
  WHERE `s`.`gameMode` = '5v5_pvp_ranked'
-   AND `s`.`patchVersion` = '3.7'
+   AND `s`.`patchVersion` = '3.8'
    AND `s`.`games` > 100
    AND `s`.`is_enemy` = 1
  ORDER BY `s`.`synergy` DESC
@@ -59,7 +59,7 @@ SELECT `s`.`patchVersion`, `s`.`gameMode`,
   JOIN `m_heros` `h2`
     ON `h2`.`id` = `s`.`hero_id_2`
  WHERE `s`.`gameMode` = '5v5_pvp_ranked'
-   AND `s`.`patchVersion` = '3.7'
+   AND `s`.`patchVersion` = '3.8'
    AND `s`.`games` > 100
    AND `s`.`is_enemy` = 0
  ORDER BY `s`.`synergy` DESC
@@ -77,7 +77,7 @@ SELECT `s`.`patchVersion` AS 'パッチ',
   JOIN `m_heros` `h2`
     ON `h2`.`id` = `s`.`hero_id_2`
  WHERE `s`.`gameMode` = '5v5_pvp_ranked'
-   AND `s`.`patchVersion` = '3.7'
+   AND `s`.`patchVersion` = '3.8'
    AND `s`.`games` > 150
    AND `s`.`is_enemy` = 0
    AND `h1`.`ja` = 'ローレライ'
@@ -110,7 +110,7 @@ SELECT `sd`.`patchVersion`,
    AND `s`.`games` > 100
  WHERE `s`.`id` IS NOT NULL
    AND `s`.`gameMode` = '5v5_pvp_ranked'
-   AND `s`.`patchVersion` = '3.7'
+   AND `s`.`patchVersion` = '3.8'
  ORDER BY `sd`.`gameMode`, `sd`.`shardId`, `sd`.`hero_id`, `sd`.`role`, `sd`.`build_type`, `sd`.`duration_type`
 ;
 

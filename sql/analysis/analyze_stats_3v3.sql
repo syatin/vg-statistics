@@ -1,5 +1,5 @@
 # 3v3 EA パッチ通してのランク別、ポジション別 ビルド勝率
-SELECT `m`.`ja` AS `ヒーロー（EA, 5v5）`,
+SELECT `m`.`ja` AS `ヒーロー（EA, 3v3）`,
        `s`.`rank` AS `ランク`,
        `s`.`role` AS `ロール`,
        `s`.`build_type` AS `ビルド`,
