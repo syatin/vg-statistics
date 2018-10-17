@@ -215,9 +215,9 @@ def process_match(match):
                     db.session.flush()
 
                 rank_point_key = 'ranked'
-                if match.gameMode == '5v5_pvp_ranked' or match.gameMode == '5v5_pvp_casual':
+                if match.gameMode in ['5v5_pvp_ranked', '5v5_pvp_casual']:
                     rank_point_key = 'ranked_5v5'
-                if match.gameMode == 'casual' or match.gameMode == 'ranked':
+                if match.gameMode in ['casual', 'ranked']:
                     rank_point_key = 'ranked'
                 if match.gameMode == 'blitz_pvp_ranked':
                     rank_point_key == 'blitz'
@@ -292,7 +292,7 @@ def _assign_role_to_participants(gamemode, participant_models):
     各プレイヤーのCSやビルドからロールを割り振る
     """
     patricipant_models_with_role = []
-    if gamemode == 'ranked':
+    if gamemode in ['ranked', 'casual']:
         # 3v3
         sorted_models = sorted(participant_models, key=lambda x:x.minionKills, reverse=True)
         carry_model = sorted_models[0]
@@ -311,7 +311,7 @@ def _assign_role_to_participants(gamemode, participant_models):
             captain_model.role = 'CAPTAIN'
         patricipant_models_with_role.append(captain_model)
 
-    elif gamemode == '5v5_pvp_ranked':
+    elif gamemode in ['5v5_pvp_ranked', '5v5_pvp_casual']:
         # 5v5
         jungle_or_captain = []
         sorted_models = sorted(participant_models, key=lambda x:[x.nonJungleMinionKills, x.jungleKills], reverse=True)
@@ -406,7 +406,6 @@ def _create_hero_synergy(match_model, participant_models_by_rosters):
                 'build_type_2': None,
                 'is_enemy': False
             })
-            print(p1.build_type)
             synergy_base.games += 1
             if p1.winner == True:
                 synergy_base.wins += 1
