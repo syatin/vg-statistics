@@ -102,7 +102,7 @@ def retrieve_match_history(gamemode, region, created_at):
             matches = api.matches({
                 'filter[gameMode]': gamemode,
                 'filter[createdAt-start]': created_at,
-                #'filter[patchVersion]': '3.8',
+                'filter[patchVersion]': '3.8',
                 'page[limit]': LIMIT,
                 'page[offset]': offset
             }, region=region)
