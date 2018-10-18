@@ -1,5 +1,11 @@
 # vg-statistics
 
+## Preparation
+
+
+Get **Development API key** via [Vainglory Developer Portal](https://developer.vainglorygame.com/).
+
+
 ## How to get started
 
 1. Python + MySQL の環境構築
