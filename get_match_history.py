@@ -13,7 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from requests.exceptions import HTTPError
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from time import sleep
 
 """
@@ -70,85 +70,80 @@ def main(gamemode, region):
     if gamemode == 'blitz':
         gamemode = 'blitz_pvp_ranked'
 
-    while True:
-        # 最後に処理した試合の後から取得する
-        created_at = None
-        last_match = Matches.query.filter(
-            Matches.gameMode == gamemode,
-            Matches.shardId == region
-        ).order_by(Matches.createdAt.desc()).first()
-        if last_match:
-            created_at = last_match.createdAt.isoformat() + 'Z'
-        else:
-            # 未処理の場合は2週間前を起点とする
-            two_weeks_ago = datetime.fromtimestamp(time.time()) - timedelta(weeks=2)
-            created_at = two_weeks_ago.isoformat() + 'Z'
+    batch_started_at = datetime.now(timezone.utc)
 
-        # 処理本体の呼び出し
-        retrieve_match_history(gamemode=gamemode, region=region, created_at=created_at)
+    # 処理本体の呼び出し
+    retrieve_match_history(gamemode=gamemode, region=region, now=batch_started_at)
 
-        # 処理が一段落したら、Vain側に試合データが溜まるのを待つ
-        sleep(30)
+    # 処理が一段落したら落とす
+    return
 
 
-def retrieve_match_history(gamemode, region, created_at):
+def retrieve_match_history(gamemode, region, now):
     """
     Gamelocker API から試合履歴を取得し諸々処理して保存する
+
+    createdAt-startを、最新時刻より2時間前
+    createdAt-endを、最新時刻より1時間前
+
+    取りきるまで回す
+    1時間毎に起動する（試合数が多いと多重起動になってサーバーが落ちるけど、まぁ...。）
     """
     offset = 0
-    app.logger.info('gamemode = {}, createdAt = {}'.format(gamemode, str(created_at)))
+
+    apikey_index = 'API_KEY_RANKED'
+    if gamemode in ['casual', '5v5_pvp_casual']:
+        apikey_index = 'API_KEY_CASUAL'
+    apiKey = app.config[apikey_index]
+
+    # ベインAPIが解釈できる形のformatで渡してやる
+    created_at_start = (now - timedelta(minutes=121)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    created_at_end = (now - timedelta(minutes=60)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    app.logger.info('process started : gamemode = {}, region = {}, createdAt-start = {}'.format(gamemode, region, created_at_start))
+
     while True:
         try:
-            apikey_index = 'API_KEY_RANKED'
-            if gamemode in ['casual', '5v5_pvp_casual']:
-                apikey_index = 'API_KEY_CASUAL'
-
             app.logger.info('retrieving Gamelocker API data : offset = {}'.format(offset))
-            api = gamelocker.Gamelocker(app.config[apikey_index]).Vainglory()
+            api = gamelocker.Gamelocker(apiKey).Vainglory()
             matches = api.matches({
                 'filter[gameMode]': gamemode,
-                'filter[createdAt-start]': created_at,
-                'filter[patchVersion]': '3.8',
+                'filter[createdAt-start]': created_at_start,
+                'filter[createdAt-end]': created_at_end,
                 'page[limit]': LIMIT,
                 'page[offset]': offset
             }, region=region)
             if matches is not None:
                 processed_count = 0
                 for match in matches:
-                    processed_count += process_match(match)
+                    processed_count += process_match(match, now)
 
                 app.logger.info('{} matches were processed.'.format(processed_count))
-                if processed_count >= LIMIT - 1:
-                    if offset <= 1000:
-                        offset += LIMIT
-                        continue
-
-                offset = 0
-                break
+                offset += LIMIT
 
         except HTTPError as e:
             if e.response.status_code == 404:
                 app.logger.info('Couldn\'t find match history')
             else:
                 app.logger.info(e)
-            offset = 0
             break
 
-    app.logger.info('retrieving data done')
+    app.logger.info('process finished : gamemode = {}, region = {}, createdAt-start = {}'.format(gamemode, region, created_at_start))
     return
 
 
-def process_match(match):
+def process_match(match, now):
     """
     1つの試合履歴を処理する
     """
     try:
+        app.logger.info('processing a match : id = {}, createdAt = {}'.format(match.id, match.createdAt))
+
         match_model = Matches.query.filter_by(uuid=match.id).first()
         if match_model is not None:
             # 処理済なので処理件数は0で返す
+            app.logger.info('skipped a match : id = {}'.format(match.id))
             return 0
-
-        app.logger.info('processing a match : id = {}'.format(match.id))
 
         match_model = Matches(
             uuid=match.id,
@@ -196,15 +191,17 @@ def process_match(match):
                 player_model = Players.query.filter_by(playerId = player.key_id).first()
                 if player_model is None:
                     player_model = Players(playerId=player.key_id, shardId=player.shardId)
-                player_model.name = player.name
-                player_model.rankPoints = player.stats['rankPoints']
-                player_model.gamesPlayed = player.stats['gamesPlayed']
-                player_model.guildTag = player.stats['guildTag']
-                player_model.karmaLevel = player.stats['karmaLevel']
-                player_model.level = player.stats['level']
-                player_model.updatedAt = datetime.now()
-                db.session.add(player_model)
-                db.session.flush()
+
+                if player_model.updatedAt is None or player_model.updatedAt > datetime.now():
+                    player_model.name = player.name
+                    player_model.rankPoints = player.stats['rankPoints']
+                    player_model.gamesPlayed = player.stats['gamesPlayed']
+                    player_model.guildTag = player.stats['guildTag']
+                    player_model.karmaLevel = player.stats['karmaLevel']
+                    player_model.level = player.stats['level']
+                    player_model.updatedAt = datetime.now()
+                    db.session.add(player_model)
+                    db.session.flush()
 
                 # ヒーローID取得
                 actor = participant.actor
