@@ -1,3 +1,5 @@
+import requests
+
 def analyze_telemetry(match):
     """
     telemetryのデータを解析します
