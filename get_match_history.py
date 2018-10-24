@@ -1,12 +1,12 @@
 # coding:utf-8
 
 import gamelocker
-import sys, traceback, time
+import sys, traceback, time, requests
 
 from app.app import app
 from app.database import db
 from app.models import MHeros, MItems, Matches, Players, Participants, Rosters, StatHeros, StatHerosDuration, StatSynergy
-from app.util import get_rank, get_build_type, get_week_start_date, get_duration_type
+from app.util import get_rank, get_build_type, get_week_start_date, get_duration_type, analyze_telemetry
 
 from flask import Flask, request, g
 from sqlalchemy import create_engine
@@ -59,7 +59,7 @@ if gamemode not in  ['ranked', 'ranked5v5', 'casual', 'casual5v5', 'blitz']:
 
 region = args[2]
 if region not in ['na', 'eu', 'ea', 'sg', 'sa', 'cn']:
-    print('{} is not valid region'.format(vgpro_region))
+    print('{} is not valid region'.format(region))
     exit()
 
 def main(gamemode, region):
@@ -120,6 +120,15 @@ def retrieve_match_history(gamemode, region, now):
 
                 app.logger.info('{} matches were processed.'.format(processed_count))
                 offset += LIMIT
+            else:
+                # 試合履歴が無い時は 404 Exception になる模様
+                pass
+        except ConnectionResetError as e:
+            # 通信エラー系はリトライ
+            app.logger.info(e)
+            app.logger.info('ConnectionResetError. sleep 10 seconds and continue')
+            sleep(10)
+            continue
 
         except HTTPError as e:
             if e.response.status_code == 404:
@@ -141,8 +150,8 @@ def process_match(match, now):
 
         match_model = Matches.query.filter_by(uuid=match.id).first()
         if match_model is not None:
-            # 処理済なので処理件数は0で返す
             app.logger.info('skipped a match : id = {}'.format(match.id))
+            # 処理済なので処理件数は0で返す
             return 0
 
         match_model = Matches(
@@ -156,6 +165,9 @@ def process_match(match, now):
         )
         db.session.add(match_model)
         db.session.flush()
+
+        # テレメトリー解析情報
+        telemetry_data = analyze_telemetry(match)
 
         # シナジーデータ計算用に Participant モデルのリストを保持する
         participant_models_by_rosters = []
@@ -251,7 +263,7 @@ def process_match(match, now):
             db.session.flush()
 
             # ロール割り振り
-            patricipant_models_with_role = _assign_role_to_participants(match.gameMode, participant_models)
+            patricipant_models_with_role = _assign_role_to_participants(match, participant_models, roster_model.side, telemetry_data)
             db.session.add_all(patricipant_models_with_role)
 
             participant_models_by_rosters.append(patricipant_models_with_role)
@@ -283,13 +295,12 @@ def process_match(match, now):
         db.session.rollback()
         return 0
 
-
-def _assign_role_to_participants(gamemode, participant_models):
+def _assign_role_to_participants(match, participant_models, side, telemetry_data):
     """
     各プレイヤーのCSやビルドからロールを割り振る
     """
     patricipant_models_with_role = []
-    if gamemode in ['ranked', 'casual']:
+    if match.gameMode in ['ranked', 'casual']:
         # 3v3
         sorted_models = sorted(participant_models, key=lambda x:x.minionKills, reverse=True)
         carry_model = sorted_models[0]
@@ -308,15 +319,39 @@ def _assign_role_to_participants(gamemode, participant_models):
             captain_model.role = 'CAPTAIN'
         patricipant_models_with_role.append(captain_model)
 
-    elif gamemode in ['5v5_pvp_ranked', '5v5_pvp_casual']:
+    elif match.gameMode in ['5v5_pvp_ranked', '5v5_pvp_casual']:
         # 5v5
+        """
+        5人の内、Mid のCS一番多い人がMid
+        Mid を除いた4人の内、BotのCS一番多い人がBot
+        Mid, Bot を除いた3人の内、TopのCS一番多い人がTop
+        Mid, Bot, Top を除いた2人の内、ジャングルCSが多い方がJungle
+        最後の1人がCaptain
+
+        最初からAFKして居ないとかは統計的に誤差なので、そこを正しくするロジックは考えない
+        """
+        side = 'Left' if side == 'left/blue' else 'Right'
+        minion_stat = telemetry_data['minion_stat'][side]
+        mid_cs = sorted(minion_stat['Mid'].items(), key=lambda x:x[1], reverse=True)
+        mid_actor = mid_cs[0][0]
+
+        bot_cs = sorted(minion_stat['Bot'].items(), key=lambda x:x[1], reverse=True)
+        bot_cs = [elem for elem in bot_cs if elem[0] != mid_actor]
+        bot_actor = bot_cs[0][0]
+
+        top_cs = sorted(minion_stat['Top'].items(), key=lambda x:x[1], reverse=True)
+        top_cs = [elem for elem in top_cs if elem[0] != mid_actor]
+        top_cs = [elem for elem in top_cs if elem[0] != bot_actor]
+        top_actor = top_cs[0][0]
+
         jungle_or_captain = []
-        sorted_models = sorted(participant_models, key=lambda x:[x.nonJungleMinionKills, x.jungleKills], reverse=True)
-        for idx in range(len(sorted_models)):
-            participant_model = sorted_models[idx]
-            if idx <= 2:
-                participant_model.role = 'LANE'
-                patricipant_models_with_role.append(participant_model)
+        for participant_model in participant_models:
+            if participant_model.actor == mid_actor:
+                participant_model.role = 'MID'
+            elif participant_model.actor == bot_actor:
+                participant_model.role = 'BOT'
+            elif participant_model.actor == top_actor:
+                participant_model.role = 'TOP'
             else:
                 jungle_or_captain.append(participant_model)
 
@@ -328,7 +363,7 @@ def _assign_role_to_participants(gamemode, participant_models):
         captain_model.role = 'CAPTAIN'
         patricipant_models_with_role.append(captain_model)
 
-    elif gamemode == 'blitz_pvp_ranked':
+    elif match.gameMode == 'blitz_pvp_ranked':
         # 電撃モード
         for participant_model in participant_models:
             participant_model.role = 'LANE'
@@ -380,13 +415,11 @@ def _create_hero_synergy(match_model, participant_models_by_rosters):
     """
     ヒーロー相性統計を計算し、更新があった行を返す
     """
-    # 更新があったモデルリスト
+    # この処理で触ったヒーロー相性モデルのリスト
     hero_synergy_models = []
 
-    # 相性計算で使う
+    # 相性計算で使うため、まずはヒーロー単体での勝率を取得する
     synergy_base_by_hero = {}
-
-    # まずはヒーロー単体での勝率を取得する
     for k in range(0, len(participant_models_by_rosters)):
         participant_models = participant_models_by_rosters[k]
 
