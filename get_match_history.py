@@ -348,10 +348,13 @@ def _assign_role_to_participants(match, participant_models, side, telemetry_data
         for participant_model in participant_models:
             if participant_model.actor == mid_actor:
                 participant_model.role = 'MID'
+                patricipant_models_with_role.append(participant_model)
             elif participant_model.actor == bot_actor:
                 participant_model.role = 'BOT'
+                patricipant_models_with_role.append(participant_model)
             elif participant_model.actor == top_actor:
                 participant_model.role = 'TOP'
+                patricipant_models_with_role.append(participant_model)
             else:
                 jungle_or_captain.append(participant_model)
 
