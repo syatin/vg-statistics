@@ -7,7 +7,8 @@ SELECT `r`.`side` AS `サイド`,
   FROM `rosters` `r`
   JOIN `matches` `m`
     ON `r`.`match_id` = `m`.`id`
- WHERE `m`.`gamemode` = 'ranked' # ranked / 5v5_pvp_ranked
+ WHERE `m`.`patchVersion` = '3.9'
+   AND `m`.`gamemode` = '5v5_pvp_ranked' # ranked / 5v5_pvp_ranked
    AND `r`.`averageRank` >= 8
  GROUP BY `r`.`side`
 ;
