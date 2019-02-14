@@ -10,6 +10,7 @@ class StatHerosDuration(db.Model):
     gameMode = db.Column(VARCHAR)
     shardId = db.Column(VARCHAR)
     hero_id = db.Column(INT)
+    rank = db.Column(INT)
     role = db.Column(VARCHAR)
     build_type = db.Column(VARCHAR)
     duration_type = db.Column(INT)
@@ -26,6 +27,7 @@ class StatHerosDuration(db.Model):
             StatHerosDuration.gameMode == params['gameMode'],
             StatHerosDuration.shardId == params['shardId'],
             StatHerosDuration.hero_id == params['hero_id'],
+            StatHerosDuration.rank == params['rank'],
             StatHerosDuration.role == params['role'],
             StatHerosDuration.build_type == params['build_type'],
             StatHerosDuration.duration_type == params['duration_type'],
@@ -36,6 +38,7 @@ class StatHerosDuration(db.Model):
                 gameMode=params['gameMode'],
                 shardId=params['shardId'],
                 hero_id=params['hero_id'],
+                rank=params['rank'],
                 role=params['role'],
                 build_type=params['build_type'],
                 duration_type=params['duration_type'],

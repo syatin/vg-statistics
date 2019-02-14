@@ -3,7 +3,7 @@ SELECT `s`.`week`, `m`.`ja`, `s`.`rank`, `s`.`role`, `s`.`build_type`, `s`.`game
   FROM `stat_heros` `s`
   JOIN `m_heros` `m`
     ON `s`.`hero_id` = `m`.`id`
- WHERE `s`.`patchVersion` = '3.9'
+ WHERE `s`.`patchVersion` = '4.0'
    AND `s`.`gameMode` = '5v5_pvp_ranked'
    AND `s`.`shardId` = 'ea'
    AND `s`.`games` > 50
@@ -20,12 +20,12 @@ SELECT `m`.`ja` AS `ヒーロー（5v5）`,
   FROM `stat_heros` `s`
   JOIN `m_heros` `m`
     ON `s`.`hero_id` = `m`.`id`
- WHERE `s`.`patchVersion` = '3.9'
+ WHERE `s`.`patchVersion` = '4.0'
    AND `s`.`gameMode` = '5v5_pvp_ranked'
    AND `s`.`rank` >= 9
  GROUP BY `s`.`hero_id`, `s`.`week`, `s`.`role`, `s`.`build_type`
 HAVING `試合数` > 50
- ORDER BY `s`.`hero_id`, `s`.`role`, `s`.`build_type`, `s`.`week`, `勝率` DESC
+ ORDER BY `s`.`week`, `勝率` DESC, `s`.`hero_id`, `s`.`role`, `s`.`build_type`
 ;
 
 # 5v5 全地域 パッチ通しての、ランク9以上のポジション別 ビルド勝率
@@ -37,7 +37,7 @@ SELECT `m`.`ja` AS `ヒーロー（全地域, 5v5）`,
   FROM `stat_heros` `s`
   JOIN `m_heros` `m`
     ON `s`.`hero_id` = `m`.`id`
- WHERE `s`.`patchVersion` = '3.9'
+ WHERE `s`.`patchVersion` = '4.0'
    AND `s`.`gameMode` = '5v5_pvp_ranked'
    AND `s`.`rank` >= 9
  GROUP BY `s`.`hero_id`, `s`.`role`, `s`.`build_type`
@@ -55,7 +55,7 @@ SELECT `m`.`ja` AS `ヒーロー（EA, 5v5）`,
   FROM `stat_heros` `s`
   JOIN `m_heros` `m`
     ON `s`.`hero_id` = `m`.`id`
- WHERE `s`.`patchVersion` = '3.9'
+ WHERE `s`.`patchVersion` = '4.0'
    AND `s`.`gameMode` = '5v5_pvp_ranked'
    AND `s`.`shardId` = 'ea'
    AND `s`.`rank` >= 7
@@ -76,7 +76,7 @@ SELECT `s`.`patchVersion`, `s`.`gameMode`,
   JOIN `m_heros` `h2`
     ON `h2`.`id` = `s`.`hero_id_2`
  WHERE `s`.`gameMode` = '5v5_pvp_ranked'
-   AND `s`.`patchVersion` = '3.9'
+   AND `s`.`patchVersion` = '4.0'
    AND `s`.`games` > 100
    AND `s`.`is_enemy` = 1
  ORDER BY `s`.`synergy` DESC
@@ -94,7 +94,7 @@ SELECT `s`.`patchVersion`, `s`.`gameMode`,
   JOIN `m_heros` `h2`
     ON `h2`.`id` = `s`.`hero_id_2`
  WHERE `s`.`gameMode` = '5v5_pvp_ranked'
-   AND `s`.`patchVersion` = '3.9'
+   AND `s`.`patchVersion` = '4.0'
    AND `s`.`games` > 100
    AND `s`.`is_enemy` = 0
  ORDER BY `s`.`synergy` DESC
@@ -112,7 +112,7 @@ SELECT `s`.`patchVersion` AS 'パッチ',
   JOIN `m_heros` `h2`
     ON `h2`.`id` = `s`.`hero_id_2`
  WHERE `s`.`gameMode` = '5v5_pvp_ranked'
-   AND `s`.`patchVersion` = '3.9'
+   AND `s`.`patchVersion` = '4.0'
    AND `s`.`games` > 150
    AND `s`.`is_enemy` = 0
    AND `h1`.`ja` = 'ローレライ'
@@ -141,11 +141,11 @@ SELECT `sd`.`patchVersion`,
    AND `s`.`role` = `sd`.`role`
    AND `s`.`build_type` = `sd`.`build_type`
    AND `s`.`rank` = 9
-   AND `s`.`week` = '2018-12-10' # patch 3.9 first week
+   AND `s`.`week` = '2019-02-11' # patch 4.0 first week
    AND `s`.`games` > 100
  WHERE `s`.`id` IS NOT NULL
    AND `s`.`gameMode` = '5v5_pvp_ranked'
-   AND `s`.`patchVersion` = '3.9'
+   AND `s`.`patchVersion` = '4.0'
  ORDER BY `sd`.`gameMode`, `sd`.`shardId`, `sd`.`hero_id`, `sd`.`role`, `sd`.`build_type`, `sd`.`duration_type`
 ;
 
@@ -169,11 +169,11 @@ SELECT `sd`.`patchVersion`,
    AND `s`.`role` = `sd`.`role`
    AND `s`.`build_type` = `sd`.`build_type`
    AND `s`.`rank` >= 9
-   AND `s`.`week` = '2018-12-10' # patch 3.9 first week
+   AND `s`.`week` = '2019-02-11' # patch 4.0 first week
    AND `s`.`games` > 50
  WHERE `s`.`id` IS NOT NULL
    AND `s`.`gameMode` = '5v5_pvp_ranked'
-   AND `s`.`patchVersion` = '3.9'
+   AND `s`.`patchVersion` = '4.0'
  GROUP BY `sd`.`gameMode`, `sd`.`hero_id`, `sd`.`role`, `sd`.`build_type`, `sd`.`duration_type`
  ORDER BY `sd`.`gameMode`, `sd`.`hero_id`, `sd`.`role`, `sd`.`build_type`, `sd`.`duration_type`
 ;
@@ -193,7 +193,7 @@ SELECT `h`.`ja` AS `CPビルド(5v5, EA)`,
     ON `p`.`match_id` = `m`.`id`
   JOIN `m_heros` `h`
     ON `p`.`actor` = `h`.`actor`
- WHERE `m`.`patchVersion` = '3.9'
+ WHERE `m`.`patchVersion` = '4.0'
    AND `m`.`shardId` = 'ea'
    AND `m`.`gamemode` = '5v5_pvp_ranked' # ranked / 5v5_pvp_ranked
    AND `p`.`rank` >= 8
@@ -214,7 +214,7 @@ SELECT `h`.`ja` AS `WPビルド(5v5, EA)`,
     ON `p`.`match_id` = `m`.`id`
   JOIN `m_heros` `h`
     ON `p`.`actor` = `h`.`actor`
- WHERE `m`.`patchVersion` = '3.9'
+ WHERE `m`.`patchVersion` = '4.0'
    AND `m`.`shardId` = 'ea'
    AND `m`.`gamemode` = '5v5_pvp_ranked' # ranked, 5v5_pvp_ranked
    AND `p`.`rank` >= 8
@@ -235,7 +235,7 @@ SELECT `h`.`ja` AS `サポートビルド(5v5, EA)`,
     ON `p`.`match_id` = `m`.`id`
   JOIN `m_heros` `h`
     ON `p`.`actor` = `h`.`actor`
- WHERE `m`.`patchVersion` = '3.9'
+ WHERE `m`.`patchVersion` = '4.0'
    AND `m`.`shardId` = 'ea'
    AND `m`.`gamemode` = '5v5_pvp_ranked' # ranked / 5v5_pvp_ranked
    AND `p`.`rank` >= 8

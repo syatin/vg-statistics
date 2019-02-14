@@ -169,6 +169,8 @@ def process_match(match, now):
         # テレメトリー解析情報
         telemetry_data = analyze_telemetry(match)
 
+        #print(telemetry_data)
+
         # シナジーデータ計算用に Participant モデルのリストを保持する
         participant_models_by_rosters = []
         is_rank7_or_more = True
@@ -396,6 +398,7 @@ def _create_stat_heros(match_model, participant_models):
             'gameMode': match_model.gameMode,
             'shardId': match_model.shardId,
             'hero_id': participant_model.hero_id,
+            'rank': participant_model.rank,
             'role': participant_model.role,
             'build_type': participant_model.build_type,
             'duration_type': get_duration_type(match_model.duration)
@@ -516,6 +519,4 @@ def _create_hero_synergy(match_model, participant_models_by_rosters):
 
     return hero_synergy_models
 
-
-# 実行！
 main(gamemode, region)

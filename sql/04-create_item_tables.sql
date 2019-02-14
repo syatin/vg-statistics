@@ -1,0 +1,40 @@
+CREATE TABLE `stat_heros_build_first_items` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `patchVersion` decimal(10,1) DEFAULT NULL,
+  `shardId` varchar(3) DEFAULT NULL,
+  `gameMode` varchar(16) DEFAULT NULL,
+  `hero_id` int(11) unsigned DEFAULT NULL,
+  `rank` tinyint(4) DEFAULT NULL,
+  `role` enum('LANE','JUNGLE','CAPTAIN','MID','TOP','BOT') DEFAULT NULL,
+  `build_type` enum('WP','CP','HYBRID','UTILITY') DEFAULT NULL,
+  `items` VARCHAR(256) DEFAULT NULL,
+  `games` int(11) DEFAULT NULL,
+  `wins` int(11) DEFAULT NULL,
+  `win_rate` decimal(5,2) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `hero_id` (`patchVersion`,`gameMode`,`shardId`,`hero_id`,`role`,`build_type`),
+  KEY `hero_id_2` (`patchVersion`,`gameMode`,`role`,`build_type`,`hero_id`),
+  CONSTRAINT `stat_hero_first_item_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heros` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `stat_heros_build_tier3_items` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `parnt_id` int(11) unsigned DEFAULT NULL,
+  `patchVersion` decimal(10,1) DEFAULT NULL,
+  `shardId` varchar(3) DEFAULT NULL,
+  `gameMode` varchar(16) DEFAULT NULL,
+  `hero_id` int(11) unsigned DEFAULT NULL,
+  `rank` tinyint(4) DEFAULT NULL,
+  `role` enum('LANE','JUNGLE','CAPTAIN','MID','TOP','BOT') DEFAULT NULL,
+  `build_type` enum('WP','CP','HYBRID','UTILITY') DEFAULT NULL,
+  `item_id` int(11) unsigned DEFAULT NULL,
+  `build_order` int(11) NOT NULL DEFAULT 0,
+  `games` int(11) DEFAULT NULL,
+  `wins` int(11) DEFAULT NULL,
+  `win_rate` decimal(5,2) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `hero_id` (`patchVersion`,`gameMode`,`shardId`,`hero_id`,`role`,`build_type`),
+  KEY `hero_id_2` (`patchVersion`,`gameMode`,`role`,`build_type`,`hero_id`),
+  CONSTRAINT `stat_heros_build_order_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heros` (`id`),
+  CONSTRAINT `stat_heros_build_order_ibfk_2` FOREIGN KEY (`item_id`) REFERENCES `m_items` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

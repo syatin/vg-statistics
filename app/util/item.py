@@ -5,7 +5,8 @@ from flask import g
 g.item_master = None
 def get_build_type(items):
     """
-    アイテムからビルドを分析して返す
+    Detect build_type by items
+    アイテムからビルドを判定する
     """
     if g.item_master is None:
         g.item_master = {}
@@ -51,3 +52,13 @@ def get_build_type(items):
             return 'UTILITY'
 
     return None
+
+g.tier3_items = None
+def get_tier3_items():
+    if g.tier3_items is None:
+        g.tier3_items = []
+        m_items = MItems.query.filter_by(tier=3).all()
+        for m_item in m_items:
+            g.tier3_items.append(m_item.name)
+
+    return g.tier3_items
