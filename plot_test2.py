@@ -30,7 +30,7 @@ color_water = (0, 255, 255)
 turrets = ['*OuterTurret5v5*', '*Turret5v5*', '*ArmoryTurret5v5*', '*VainNode*']
 
 def main():
-    img = Image.open('sample_data/5v5map_base_2.png')
+    img = Image.open('resources/5v5map_base_2.png')
 
     # この秒数毎に別の画像にする
     slice_seconds = 60

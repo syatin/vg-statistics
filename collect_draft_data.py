@@ -19,7 +19,7 @@ from sqlalchemy.orm import sessionmaker
 # export LC_CTYPE="ja_JP.UTF-8"
 
 RETRIEVE_START_DATE = '2019-02-14T00:00:00Z'
-CSV_OUTPUT_DIR = 'csv_out'
+CSV_OUTPUT_DIR = 'output/csv'
 TARGET_IGN_LIST = {
     'GGNewType2nd': {
         'StarIy'    : {'ea': ['StarIy'],                            'na': ['一本満足']},
@@ -55,7 +55,7 @@ TARGET_IGN_LIST = {
 
 def main():
     if not os.path.exists(CSV_OUTPUT_DIR):
-        os.mkdir(CSV_OUTPUT_DIR)
+        os.makedirs(CSV_OUTPUT_DIR)
 
     csv_output_targets = {}
     for team in TARGET_IGN_LIST:

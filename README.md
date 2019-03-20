@@ -17,7 +17,7 @@ Get **Development API key** via [Vainglory Developer Portal](https://developer.v
     ```
     pip install -r requirements.txt
     pip uninstall python-gamelocker
-    pip install git+https://github.com/yamadar/python-gamelocker.git
+    pip install git+https://github.com/syatin/python-gamelocker.git
     ```
 5. `app/config.py` を作成し設定情報を記載。内容は下記を参考にして下さい。  
 ```python
