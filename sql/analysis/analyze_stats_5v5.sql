@@ -42,7 +42,7 @@ SELECT `m`.`ja` AS `ヒーロー（全地域, 5v5）`,
    AND `s`.`rank` >= 9
  GROUP BY `s`.`hero_id`, `s`.`role`, `s`.`build_type`
 HAVING `試合数` >100
- ORDER BY `s`.`rank` DESC, `勝率` DESC
+ ORDER BY `勝率` DESC
 ;
 
 # 5v5 EA パッチ通してのランク別、ポジション別 ビルド勝率
@@ -64,7 +64,7 @@ HAVING `試合数` > 100
  ORDER BY `s`.`rank` DESC, `勝率` DESC
 ;
 
-# 敵との相性
+# 敵との相性（パッチ指定）
 SELECT `s`.`patchVersion`, `s`.`gameMode`,
        `h1`.`ja`, `s`.`role_1`, `s`.`build_type_1`,
        `h2`.`ja`, `s`.`role_2`, `s`.`build_type_2`,
@@ -80,6 +80,28 @@ SELECT `s`.`patchVersion`, `s`.`gameMode`,
    AND `s`.`games` > 100
    AND `s`.`is_enemy` = 1
  ORDER BY `s`.`synergy` DESC
+;
+
+# 敵との相性（パッチ毎のシナジーを試合数で加重平均）
+SELECT `s`.`gameMode`,
+       `h1`.`ja`, `s`.`role_1`, `s`.`build_type_1`,
+       `h2`.`ja`, `s`.`role_2`, `s`.`build_type_2`,
+       `s`.`is_enemy`,
+       SUM(`s`.`games`) AS `試合数`,
+       CONCAT(FORMAT((SUM(`s`.`wins`) / SUM(`s`.`games`) * 100), 2), ' %') AS `勝率`,
+       FORMAT(SUM((`s`.`synergy` * `s`.`games`)) / SUM(`s`.`games`), 2) AS `シナジー`
+  FROM `stat_synergy` `s`
+  JOIN `m_heros` `h1`
+    ON `h1`.`id` = `s`.`hero_id_1`
+  JOIN `m_heros` `h2`
+    ON `h2`.`id` = `s`.`hero_id_2`
+ WHERE `s`.`gameMode` = '5v5_pvp_ranked'
+   AND `s`.`is_enemy` = 1
+   AND `h1`.`ja` = 'レザ'
+   AND `s`.`role_2` = 'CAPTAIN'
+ GROUP BY `h1`.`ja`, `s`.`role_1`, `s`.`build_type_1`, `h2`.`ja`, `s`.`role_2`, `s`.`build_type_2`
+ HAVING `試合数` > 500
+ ORDER BY `シナジー` DESC
 ;
 
 # 味方との相性
@@ -174,6 +196,7 @@ SELECT `sd`.`patchVersion`,
  WHERE `s`.`id` IS NOT NULL
    AND `s`.`gameMode` = '5v5_pvp_ranked'
    AND `s`.`patchVersion` = '4.0'
+   AND `sd`.`rank` >= 9
  GROUP BY `sd`.`gameMode`, `sd`.`hero_id`, `sd`.`role`, `sd`.`build_type`, `sd`.`duration_type`
  ORDER BY `sd`.`gameMode`, `sd`.`hero_id`, `sd`.`role`, `sd`.`build_type`, `sd`.`duration_type`
 ;
@@ -244,3 +267,15 @@ SELECT `h`.`ja` AS `サポートビルド(5v5, EA)`,
 HAVING COUNT(`p`.`id`) >= 50
  ORDER BY `勝率` DESC
 ;
+
+# 平均CSを出すSQL
+# 生集計のため時間が掛かります
+SELECT AVG(`p`.`minionKills` / (`m`.`duration` / 60))
+  FROM `participants` `p`
+  JOIN `matches` `m`
+    ON `p`.`match_id` = `m`.`id`
+ WHERE `p`.`rankPoint` >= 2600
+   AND `p`.`rankPoint` < 2800
+   AND `p`.`rank` = 10
+   AND `p`.`role` = 'BOT'
+   AND `m`.`patchVersion` = '4.0'

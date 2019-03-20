@@ -1,4 +1,4 @@
-CREATE TABLE `stat_heros_build_first_items` (
+CREATE TABLE `stat_heroes_build_first_items` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `patchVersion` decimal(10,1) DEFAULT NULL,
   `shardId` varchar(3) DEFAULT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE `stat_heros_build_first_items` (
   CONSTRAINT `stat_hero_first_item_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heros` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `stat_heros_build_tier3_items` (
+CREATE TABLE `stat_heroes_build_tier3_items` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `parnt_id` int(11) unsigned DEFAULT NULL,
   `patchVersion` decimal(10,1) DEFAULT NULL,

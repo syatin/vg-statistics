@@ -23,7 +23,7 @@ SELECT `m`.`gamemode` AS `ゲームモード`,
   JOIN `rosters` `r`
     ON `m`.`id` = `r`.`match_id`
  WHERE `m`.`gameMode` = '5v5_pvp_ranked' # 5v5_pvp_ranked / ranked
-   AND `m`.`patchVersion` = '3.8'
+   AND `m`.`patchVersion` = '4.0'
    AND `r`.`averageRank` > 4
  GROUP BY `m`.`gamemode`, `m`.`shardId`, `r`.`averageRank`
 ;

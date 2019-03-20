@@ -1,6 +1,7 @@
 from .m_heros import MHeros
 from .m_items import MItems
 from .matches import Matches
+from .matches_extra import MatchesExtra
 from .participants import Participants
 from .players import Players
 from .rosters import Rosters
@@ -13,6 +14,7 @@ __all__ = [
     MHeros,
     MItems,
     Matches,
+    MatchesExtra,
     Participants,
     Players,
     Rosters,

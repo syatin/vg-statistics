@@ -167,7 +167,11 @@ def process_match(match, now):
         db.session.flush()
 
         # テレメトリー解析情報
-        telemetry_data = analyze_telemetry(match)
+        telemetry_data = {}
+        if match.gameMode in ['5v5_pvp_ranked', '5v5_pvp_casual']:
+            telemetry_url = match.assets[0].url
+            telemetry = requests.get(telemetry_url).json()
+            telemetry_data = analyze_telemetry(telemetry)
 
         #print(telemetry_data)
 

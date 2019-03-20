@@ -1,5 +1,5 @@
 # 3v3 EA 週別、ポジション別 ビルド別の勝率ランキング
-SELECT `s`.`week`, 
+SELECT `s`.`week`,
        `m`.`ja` AS `ヒーロー名`,
        `s`.`role` AS `ポジション`,
        `s`.`build_type` AS `ビルド`,
