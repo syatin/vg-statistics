@@ -5,7 +5,7 @@ import sys, traceback, time, requests
 
 from app.app import app
 from app.database import db
-from app.models import MHeros, MItems, Matches, Players, Participants, Rosters, StatHeros, StatHerosDuration, StatSynergy
+from app.models import MHeros, MItems, Matches, MatchesExtra, Players, Participants, Rosters, StatHeros, StatHerosDuration, StatSynergy
 from app.util import get_rank, get_build_type, get_week_start_date, get_duration_type, analyze_telemetry
 
 from flask import Flask, request, g
@@ -103,7 +103,8 @@ def retrieve_match_history(gamemode, region, now):
     apiKey = app.config[apikey_index]
 
     # ベインAPIが解釈できる形のformatで渡してやる
-    created_at_start = (now - timedelta(minutes=121)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    #created_at_start = (now - timedelta(minutes=121)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    created_at_start = '2019-03-05T00:00:00Z'
     created_at_end = (now - timedelta(minutes=60)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     app.logger.info('process started : gamemode = {}, region = {}, createdAt-start = {}'.format(gamemode, region, created_at_start))
@@ -154,6 +155,11 @@ def process_match(match, now):
     try:
         app.logger.info('processing a match : id = {}, createdAt = {}'.format(match.id, match.createdAt))
 
+        gameMode = match.gameMode
+        if gameMode is None:
+            app.logger.error('gameMode is None!! match = {}'.format(vars(match)))
+            return None
+
         match_model = Matches.query.filter_by(uuid=match.id).first()
         if match_model is not None:
             app.logger.info('skipped a match : id = {}'.format(match.id))
@@ -163,7 +169,7 @@ def process_match(match, now):
         match_model = Matches(
             uuid=match.id,
             shardId=match.shardId,
-            gameMode=match.gameMode,
+            gameMode=gameMode,
             duration=match.duration,
             endGameReason=match.stats['endGameReason'],
             patchVersion=match.patchVersion,
@@ -174,12 +180,29 @@ def process_match(match, now):
 
         # テレメトリー解析情報
         telemetry_data = {}
-        if match.gameMode in ['5v5_pvp_ranked', '5v5_pvp_casual']:
+        if gameMode in ['5v5_pvp_ranked', '5v5_pvp_casual', 'private_party_vg_5v5', 'private_party_draft_match_5v5']:
             telemetry_url = match.assets[0].url
             telemetry = requests.get(telemetry_url).json()
             telemetry_data = analyze_telemetry(telemetry)
 
-        #print(telemetry_data)
+        if gameMode in ['5v5_pvp_ranked', 'private_party_draft_match_5v5']:
+            #ドラフトピックの処理
+            if len(match.assets) == 0:
+                return match_model
+
+            telemetry_url = match.assets[0].url
+            telemetry = requests.get(telemetry_url).json()
+            telemetry_data = analyze_telemetry(telemetry)
+            banpick_order = telemetry_data['banpick_order']
+
+            match_extra_model = MatchesExtra.query.filter_by(match_id=match_model.id).first()
+            if match_extra_model is None:
+                match_extra_model = MatchesExtra(
+                    match_id=match_model.id,
+                    banpick=banpick_order,
+                )
+                db.session.add(match_extra_model)
+                db.session.commit()
 
         # シナジーデータ計算用に Participant モデルのリストを保持する
         participant_models_by_rosters = []
@@ -236,11 +259,11 @@ def process_match(match, now):
                     db.session.flush()
 
                 rank_point_key = 'ranked'
-                if match.gameMode in ['5v5_pvp_ranked', '5v5_pvp_casual']:
+                if gameMode in ['5v5_pvp_ranked', '5v5_pvp_casual', 'private_party_vg_5v5', 'private_party_draft_match_5v5']:
                     rank_point_key = 'ranked_5v5'
-                if match.gameMode in ['casual', 'ranked']:
+                if gameMode in ['casual', 'ranked']:
                     rank_point_key = 'ranked'
-                if match.gameMode == 'blitz_pvp_ranked':
+                if gameMode == 'blitz_pvp_ranked':
                     rank_point_key == 'blitz'
 
                 rank_point = player_model.rankPoints[rank_point_key]
@@ -331,7 +354,7 @@ def _assign_role_to_participants(match, participant_models, side, telemetry_data
             captain_model.role = 'CAPTAIN'
         patricipant_models_with_role.append(captain_model)
 
-    elif match.gameMode in ['5v5_pvp_ranked', '5v5_pvp_casual']:
+    elif match.gameMode in ['5v5_pvp_ranked', '5v5_pvp_casual', 'private_party_vg_5v5', 'private_party_draft_match_5v5']:
         # 5v5
         """
         5人の内、Mid のCS一番多い人がMid
