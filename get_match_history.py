@@ -43,6 +43,8 @@ https://developer.vainglorygame.com/docs#get-a-collection-of-players
 - ranked
 - 5v5_pvp_ranked
 - 5v5_pvp_casual
+- private_party_draft_match_5v5
+- private_party_vg_5v5
 """
 
 LIMIT = 5
@@ -53,7 +55,7 @@ if len(args) != 3:
     exit()
 
 gamemode = args[1]
-if gamemode not in  ['ranked', 'ranked5v5', 'casual', 'casual5v5', 'blitz']:
+if gamemode not in  ['ranked', 'ranked5v5', 'casual', 'casual5v5', 'blitz', 'private5v5', 'private_draft5v5']:
     print('{} is not valid gamemode'.format(gamemode))
     exit()
 
@@ -65,6 +67,10 @@ if region not in ['na', 'eu', 'ea', 'sg', 'sa', 'cn']:
 def main(gamemode, region):
     if gamemode == 'ranked5v5':
         gamemode = '5v5_pvp_ranked'
+    if gamemode == 'private5v5':
+        gamemode = 'private_party_vg_5v5'
+    if gamemode == 'private_draft5v5':
+        gamemode = 'private_party_draft_match_5v5'
     if gamemode == 'casual5v5':
         gamemode = '5v5_pvp_casual'
     if gamemode == 'blitz':
