@@ -57,7 +57,7 @@ def _analyze_5v5(telemetry):
     for evt in telemetry:
         try:
             evt_type = evt['type']
-            evt_time = datetime.strptime(evt['time'], '%Y-%m-%dT%H:%M:%S+0000')
+            evt_time = datetime.strptime(evt['time'], '%Y-%m-%dT%H:%M:%S%z')
             payload = evt['payload']
             seconds = 0 if match_start_time is None else (evt_time - match_start_time).total_seconds()
 
