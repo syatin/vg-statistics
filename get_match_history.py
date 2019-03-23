@@ -77,11 +77,8 @@ def main(gamemode, region):
         gamemode = 'blitz_pvp_ranked'
 
     batch_started_at = datetime.now(timezone.utc)
-
-    # 処理本体の呼び出し
     retrieve_match_history(gamemode=gamemode, region=region, now=batch_started_at)
 
-    # 処理が一段落したら落とす
     return
 
 
@@ -97,14 +94,11 @@ def retrieve_match_history(gamemode, region, now):
     """
     offset = 0
 
-    apikey_index = 'API_KEY_RANKED'
-    if gamemode in ['casual', '5v5_pvp_casual']:
-        apikey_index = 'API_KEY_CASUAL'
+    apikey_index = 'API_KEY_{}'.format(region.upper())
     apiKey = app.config[apikey_index]
+    print(apiKey)
 
-    # ベインAPIが解釈できる形のformatで渡してやる
-    #created_at_start = (now - timedelta(minutes=121)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    created_at_start = '2019-03-05T00:00:00Z'
+    created_at_start = (now - timedelta(minutes=121)).strftime("%Y-%m-%dT%H:%M:%SZ")
     created_at_end = (now - timedelta(minutes=60)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     app.logger.info('process started : gamemode = {}, region = {}, createdAt-start = {}'.format(gamemode, region, created_at_start))

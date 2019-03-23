@@ -63,15 +63,20 @@ def _analyze_5v5(telemetry):
 
             # イベントの一覧
             known_events = [
-                'HeroBan', 'HeroSelect', 'HeroSkinSelect', 'HeroSwap', 'PlayerFirstSpawn',
+                'HeroBan', 'HeroSelect', 'HeroSkinSelect', 'HeroSwap', 
+                # 'DraftLobby_Role_Bumped', 'DraftLobby_AutoLocked',
+                'PlayerFirstSpawn',
                 'LevelUp', 'EarnXP', 'LearnAbility', 'UseAbility',
                 'BuyItem', 'SellItem', 'UseItemAbility',
-                'DealDamage', 'KillActor', 'Vampirism', 'HealTarget',
+                'DealDamage', 'KillActor', 'Vampirism', 'HealTarget', 
                 'GoldFromTowerKill', # タレット壊した報酬
+                #'Executed',
+                #'GoldFromExecution', # キル報酬
                 'NPCkillNPC', # ミニオンがタレット壊した時（ミニオン同士では発生しない）
             ]
             if evt_type not in known_events:
                 print(evt_type)
+                print(evt)
 
             # Draft Pick
             # -> matches に全体、rosters にもそのチームのBANを保存しておく？
