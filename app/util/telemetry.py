@@ -63,14 +63,14 @@ def _analyze_5v5(telemetry):
 
             # イベントの一覧
             known_events = [
+                'DraftLobby_Role_Bumped', 'DraftLobby_AutoLocked',
                 'HeroBan', 'HeroSelect', 'HeroSkinSelect', 'HeroSwap', 
-                # 'DraftLobby_Role_Bumped', 'DraftLobby_AutoLocked',
                 'PlayerFirstSpawn',
                 'LevelUp', 'EarnXP', 'LearnAbility', 'UseAbility',
                 'BuyItem', 'SellItem', 'UseItemAbility',
                 'DealDamage', 'KillActor', 'Vampirism', 'HealTarget', 
                 'GoldFromTowerKill', # タレット壊した報酬
-                #'Executed',
+                'Executed', # ベインクリスタルにヒーローが倒された時
                 #'GoldFromExecution', # キル報酬
                 'NPCkillNPC', # ミニオンがタレット壊した時（ミニオン同士では発生しない）
             ]
@@ -373,6 +373,16 @@ def _analyze_5v5(telemetry):
                     "Team": "Right", "Actor": "*5v5_Blackclaw_Captured*",
                     "Killed": "*VainNode*", "KilledTeam": "Left", "Gold": "0",
                     "IsHero": 0, "TargetIsHero": 0, "Position": [ -63.00, 0.06, 0.00 ]
+                }
+            }
+            ベインクリスタルがヒーロー倒した
+            {
+                'time': '2019-03-23T23:33:45+0800',
+                'type': 'Executed',
+                'payload': {
+                    'Team': 'Left', 'Actor': '*VainCrystal_Home_5v5*',
+                    'Killed': '*Joule*', 'KilledTeam': 'Right', 'Gold': '0',
+                    'IsHero': 0, 'TargetIsHero': 1, 'Position': [-93.22, 0.06, -0.36]
                 }
             }
             """

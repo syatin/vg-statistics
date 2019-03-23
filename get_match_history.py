@@ -96,7 +96,6 @@ def retrieve_match_history(gamemode, region, now):
 
     apikey_index = 'API_KEY_{}'.format(region.upper())
     apiKey = app.config[apikey_index]
-    print(apiKey)
 
     created_at_start = (now - timedelta(minutes=121)).strftime("%Y-%m-%dT%H:%M:%SZ")
     created_at_end = (now - timedelta(minutes=60)).strftime("%Y-%m-%dT%H:%M:%SZ")
