@@ -70,8 +70,8 @@ def _analyze_5v5(telemetry):
                 'BuyItem', 'SellItem', 'UseItemAbility',
                 'DealDamage', 'KillActor', 'Vampirism', 'HealTarget', 
                 'GoldFromTowerKill', # タレット壊した報酬
-                'Executed', # ベインクリスタルにヒーローが倒された時
-                #'GoldFromExecution', # キル報酬
+                'Executed', # ミニオンやタレットやベインクリスタル等がヒーローを倒した時
+                'GoldFromExecution', # 上記による獲得ゴールド
                 'NPCkillNPC', # ミニオンがタレット壊した時（ミニオン同士では発生しない）
             ]
             if evt_type not in known_events:
