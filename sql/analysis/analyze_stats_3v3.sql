@@ -8,7 +8,7 @@ SELECT `s`.`week`,
   FROM `stat_heros` `s`
   JOIN `m_heros` `m`
     ON `s`.`hero_id` = `m`.`id`
- WHERE `s`.`patchVersion` = '4.0'
+ WHERE `s`.`patchVersion` = '4.1'
    AND `s`.`gameMode` = 'ranked'
    AND `s`.`shardId` = 'ea'
    AND `s`.`games` > 20
@@ -27,7 +27,7 @@ SELECT `m`.`ja` AS `ヒーロー（EA, 3v3）`,
   FROM `stat_heros` `s`
   JOIN `m_heros` `m`
     ON `s`.`hero_id` = `m`.`id`
- WHERE `s`.`patchVersion` = '4.0'
+ WHERE `s`.`patchVersion` = '4.1'
    AND `s`.`gameMode` = 'ranked'
    AND `s`.`shardId` = 'ea'
    AND `s`.`rank` >= 7
@@ -48,7 +48,7 @@ SELECT `s`.`patchVersion`, `s`.`gameMode`,
   JOIN `m_heros` `h2`
     ON `h2`.`id` = `s`.`hero_id_2`
  WHERE `s`.`gameMode` = 'ranked'
-   AND `s`.`patchVersion` = '4.0'
+   AND `s`.`patchVersion` = '4.1'
    AND `s`.`games` > 100
    AND `s`.`is_enemy` = 0
  ORDER BY `s`.`synergy` DESC
@@ -79,7 +79,7 @@ SELECT `sd`.`patchVersion`,
    AND `s`.`games` > 100
  WHERE `s`.`id` IS NOT NULL
    AND `s`.`gameMode` = 'ranked'
-   AND `s`.`patchVersion` = '4.0'
+   AND `s`.`patchVersion` = '4.1'
  ORDER BY `sd`.`gameMode`, `sd`.`shardId`, `sd`.`hero_id`, `sd`.`role`, `sd`.`build_type`, `sd`.`duration_type`
 ;
 
@@ -97,7 +97,7 @@ SELECT `h`.`ja` AS `CPビルド(3v3, EA)`,
     ON `p`.`match_id` = `m`.`id`
   JOIN `m_heros` `h`
     ON `p`.`actor` = `h`.`actor`
- WHERE `m`.`patchVersion` = '4.0'
+ WHERE `m`.`patchVersion` = '4.1'
    AND `m`.`gamemode` = 'ranked' # ranked / 5v5_pvp_ranked
    AND `m`.`shardId` = 'ea'
    AND `p`.`rank` >= 8
@@ -117,7 +117,7 @@ SELECT `h`.`ja` AS `WPビルド(3v3, EA)`,
     ON `p`.`match_id` = `m`.`id`
   JOIN `m_heros` `h`
     ON `p`.`actor` = `h`.`actor`
- WHERE `m`.`patchVersion` = '4.0'
+ WHERE `m`.`patchVersion` = '4.1'
    AND `m`.`gamemode` = 'ranked' # ranked, 5v5_pvp_ranked
    AND `m`.`shardId` = 'ea'
    AND `p`.`rank` >= 8
@@ -137,7 +137,7 @@ SELECT `h`.`ja` AS `サポートビルド(3v3, EA)`,
     ON `p`.`match_id` = `m`.`id`
   JOIN `m_heros` `h`
     ON `p`.`actor` = `h`.`actor`
- WHERE `m`.`patchVersion` = '4.0'
+ WHERE `m`.`patchVersion` = '4.1'
    AND `m`.`gamemode` = 'ranked' # ranked / 5v5_pvp_ranked
    AND `m`.`shardId` = 'ea'
    AND `p`.`rank` >= 8
