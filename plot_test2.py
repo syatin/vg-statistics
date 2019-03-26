@@ -42,8 +42,6 @@ def main():
     movement_slice = _create_movement_slice(movement_summary, slice_seconds)
 
     for timespan in movement_slice:
-
-        # TODO 後で桁揃えの方法調べる
         second_start = slice_seconds * timespan
         second_end = second_start + slice_seconds
         title = f"Time {int(second_start/60)}:{second_start%60:02} - {int(second_end/60)}:{second_end%60:02}"

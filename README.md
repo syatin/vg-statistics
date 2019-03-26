@@ -27,8 +27,12 @@ git管理したくない情報です
 class DevelopmentConfig:
     # Vainglory API key
     # https://developer.vainglorygame.com/apps?locale=en
-    API_KEY_RANKED = 'あなたのVainglory DEVELOPMENT API KEY をここに貼り付けて下さい(ランク用)'
-    API_KEY_CASUAL = 'あなたのVainglory DEVELOPMENT API KEY をここに貼り付けて下さい(カジュアル用)'
+    API_KEY_CN = 'あなたのVainglory DEVELOPMENT API KEY をここに貼り付けて下さい（CN用）'
+    API_KEY_EA = 'あなたのVainglory DEVELOPMENT API KEY をここに貼り付けて下さい（EA用）'
+    API_KEY_EU = 'あなたのVainglory DEVELOPMENT API KEY をここに貼り付けて下さい（EU用）'
+    API_KEY_NA = 'あなたのVainglory DEVELOPMENT API KEY をここに貼り付けて下さい（NA用）'
+    API_KEY_SA = 'あなたのVainglory DEVELOPMENT API KEY をここに貼り付けて下さい（SA用）'
+    API_KEY_SG = 'あなたのVainglory DEVELOPMENT API KEY をここに貼り付けて下さい（SEA用）'
 
     # Flask
     DEBUG = True
@@ -41,9 +45,11 @@ class DevelopmentConfig:
 Config = DevelopmentConfig
 ```
 6. テーブル作成
+    - `sql/*` 直下のファイル群を上から順番に実行。
     - `sql/00-create_m_heros_2018-09-14.sql`
     - `sql/01-create_m_items_2018-09-14.sql`
     - `sql/02-create_tables.sql`
+    - （全ファイル終わるまでやる）
 
 ## 試合履歴の取得
 

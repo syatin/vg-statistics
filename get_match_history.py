@@ -179,7 +179,7 @@ def process_match(match, now):
             telemetry_data = analyze_telemetry(telemetry)
 
         if gameMode in ['5v5_pvp_ranked', 'private_party_draft_match_5v5']:
-            #ドラフトピックの処理
+            # ドラフトピックの処理
             if len(match.assets) == 0:
                 return match_model
 
@@ -232,7 +232,7 @@ def process_match(match, now):
                 if player_model is None:
                     player_model = Players(playerId=player.key_id, shardId=player.shardId)
 
-                if player_model.updatedAt is None or player_model.updatedAt > datetime.now():
+                if player_model.updatedAt is None or player_model.updatedAt < datetime.now():
                     player_model.name = player.name
                     player_model.rankPoints = player.stats['rankPoints']
                     player_model.gamesPlayed = player.stats['gamesPlayed']
@@ -243,7 +243,7 @@ def process_match(match, now):
                     db.session.add(player_model)
                     db.session.flush()
 
-                # ヒーローID取得
+                # ヒーロー取得
                 actor = participant.actor
                 hero = MHeros.query.filter(MHeros.actor == actor).first()
                 if hero is None:

@@ -17,24 +17,12 @@ def _analyze_5v5(telemetry):
         'Right': {'Top': {}, 'Mid': {}, 'Bot': {}}
     }
     banpick_order = []
-    banned = {
-        'Left': [], 'Right': []
-    }
-    first_buy_items = {
-        'Left': {}, 'Right': {}
-    }
-    first_gold = {
-        'Left': {}, 'Right': {}
-    }
-    item_build_order = {
-        'Left': {}, 'Right': {}
-    }
-    use_item_ability = {
-        'Left': {}, 'Right': {}
-    }
-    movement_summary = {
-        'Left': {}, 'Right': {}
-    }
+    banned = {'Left': [], 'Right': []}
+    first_gold = {'Left': {}, 'Right': {}}
+    first_buy_items = {'Left': {}, 'Right': {}}
+    item_build_order = {'Left': {}, 'Right': {}}
+    use_item_ability = {'Left': {}, 'Right': {}}
+    movement_summary = {'Left': {}, 'Right': {}}
 
     tier3_items = get_tier3_items()
 
@@ -61,7 +49,7 @@ def _analyze_5v5(telemetry):
             payload = evt['payload']
             seconds = 0 if match_start_time is None else (evt_time - match_start_time).total_seconds()
 
-            # イベントの一覧
+            # 既知のイベントの一覧
             known_events = [
                 'DraftLobby_Role_Bumped', 'DraftLobby_AutoLocked',
                 'HeroBan', 'HeroSelect', 'HeroSkinSelect', 'HeroSwap', 
@@ -70,17 +58,14 @@ def _analyze_5v5(telemetry):
                 'BuyItem', 'SellItem', 'UseItemAbility',
                 'DealDamage', 'KillActor', 'Vampirism', 'HealTarget', 
                 'GoldFromTowerKill', # タレット壊した報酬
-                'Executed', # ミニオンやタレットやベインクリスタル等がヒーローを倒した時
-                'GoldFromExecution', # 上記による獲得ゴールド
                 'NPCkillNPC', # ミニオンがタレット壊した時（ミニオン同士では発生しない）
+                'Executed', 'GoldFromExecution', # ミニオン、タレット、ベインクリスタル等がヒーローを倒した時
             ]
             if evt_type not in known_events:
                 print(evt_type)
                 print(evt)
 
             # Draft Pick
-            # -> matches に全体、rosters にもそのチームのBANを保存しておく？
-            # -> 追加情報系なので、matches_append などでテーブルを分けるべきかもしれない。
             if evt_type == 'HeroBan':
                 team = 'Left' if payload['Team'] == '1' else 'Right'
                 banned[team].append(payload['Hero'])
@@ -138,14 +123,14 @@ def _analyze_5v5(telemetry):
 
                 """
                 チームにおける各アイテムの購入個数別の勝率比較
-                （契約、視界、飴ちゃん、ボーンソー、ストクラ、ウォートレ、シバスチ、アトラス等など、気になるし、今このデータは誰も持ってない）
+                （視界、ボーンソー、ストクラ、ウォートレ、シバスチ、アトラス等など、気になるし、今このデータは誰も持ってない）
                 →stat item team purchase amount
                 →ゲームモード、パッチ、地域、ランク、アイテムID（ゲームモードで使われるもの全て）、購入個数（0スタート）、試合数、勝利数のテーブル構造
                 """
                 # 契約、視界、tier3アイテム、build_type = support のアイテム、
 
                 # 最後にビルド全売りして赤青インフ買う人も多いので割とブレそう
-                # 視界、飴ちゃん、インフュージョンは、購入個数より使った回数の方が大事そうなので、そっちを見ようかな
+                # 視界、インフュージョンは、購入個数より使った回数の方が大事そうなので、そっちを見ようかな
                 # UseItemAbility
 
                 # first items
@@ -179,7 +164,7 @@ def _analyze_5v5(telemetry):
 
                 """
                 チームにおけるに特定アイテムの1〜20分の時刻別、「使用した場合」と「使用してない場合」の勝率
-                （契約、インフュージョン、飴、視界、靴、泉、クルシ、アトラス）
+                （契約、インフュージョン、視界、靴、泉、クルシ、アトラス）
                 →stat item team usage
                 →ゲームモード、パッチ、地域、ランク、アイテムID、試合時間、使用回数（0スタート）、試合数、勝利数
                 """
@@ -241,10 +226,10 @@ def _analyze_5v5(telemetry):
 
             hero_movements = {'Left' : {}, 'Right' : {}}
             """
-            で、各ヒーローの下にこういうのが入る
+            各ヒーローの下にこういうのが入る
             {
                 'time': 123
-                ああー、ここ普通にテレメトリデータで良さげ。
+                うーん、ここ普通にテレメトリデータで良さげ。
                 ただし、Deathの場合はActorじゃなくてTargetActorになるので、その辺は気をつける。
                 とりあえずやれば分かる。
             }
