@@ -5,8 +5,8 @@ import sys, traceback, time, requests
 
 from app.app import app
 from app.database import db
-from app.models import MHeroes, MItems, Matches, MatchesExtra, Players, Participants, Rosters, StatHeroes, StatHeroesDuration, StatSynergy
-from app.util import get_rank, get_build_type, get_week_start_date, get_duration_type, analyze_telemetry
+from app.models import MHeroes, MItems, Matches, MatchesExtra, Players, Participants, Rosters, StatBanHeroes, StatHeroes, StatHeroesDuration, StatSynergy
+from app.util import get_rank, get_build_type, get_week_start_date, get_hero_by_actor, get_hero_id_by_actor, get_duration_type, analyze_telemetry
 
 from flask import Flask, request, g
 from sqlalchemy import create_engine
@@ -174,33 +174,18 @@ def process_match(match, now):
         # テレメトリー解析情報
         telemetry_data = {}
         if gameMode in ['5v5_pvp_ranked', '5v5_pvp_casual', 'private_party_vg_5v5', 'private_party_draft_match_5v5']:
-            telemetry_url = match.assets[0].url
-            telemetry = requests.get(telemetry_url).json()
-            telemetry_data = analyze_telemetry(telemetry)
-
-        if gameMode in ['5v5_pvp_ranked', 'private_party_draft_match_5v5']:
-            # ドラフトピックの処理
             if len(match.assets) == 0:
-                return match_model
-
-            telemetry_url = match.assets[0].url
-            telemetry = requests.get(telemetry_url).json()
-            telemetry_data = analyze_telemetry(telemetry)
-            banpick_order = telemetry_data['banpick_order']
-
-            match_extra_model = MatchesExtra.query.filter_by(match_id=match_model.id).first()
-            if match_extra_model is None:
-                match_extra_model = MatchesExtra(
-                    match_id=match_model.id,
-                    banpick=banpick_order,
-                )
-                db.session.add(match_extra_model)
-                db.session.commit()
+                # 過去にデータが欠けている事があった
+                pass
+            else:
+                telemetry_url = match.assets[0].url
+                telemetry = requests.get(telemetry_url).json()
+                telemetry_data = analyze_telemetry(telemetry)
 
         # シナジーデータ計算用に Participant モデルのリストを保持する
         participant_models_by_rosters = []
         is_rank7_or_more = True
-
+        roster_by_side = {}
         for roster in match.rosters:
             roster_model = Rosters(
                 match_id=match_model.id,
@@ -217,6 +202,7 @@ def process_match(match, now):
             )
             db.session.add(roster_model)
             db.session.flush()
+            roster_by_side[roster_model.side] = roster_model
 
             player_count = 0
             total_rank_points = 0
@@ -313,6 +299,43 @@ def process_match(match, now):
         if is_rank7_or_more:
             hero_synergy_models = _create_hero_synergy(match_model, participant_models_by_rosters)
             db.session.add_all(hero_synergy_models)
+
+        if gameMode in ['5v5_pvp_ranked', 'private_party_draft_match_5v5']:
+            if 'banpick_order' in telemetry_data:
+                banpick_order = telemetry_data['banpick_order']
+
+                match_extra_model = MatchesExtra.query.filter_by(match_id=match_model.id).first()
+                if match_extra_model is None:
+                    match_extra_model = MatchesExtra(
+                        match_id=match_model.id,
+                        banpick=banpick_order,
+                    )
+                    db.session.add(match_extra_model)
+                    db.session.flush()
+
+                for ban_order in range(0, 4):
+                    side = 'left/blue' if ban_order % 2 == 0 else 'right/red'
+                    roster_model = roster_by_side[side]
+
+                    actor = banpick_order[ban_order]
+                    ban_hero_id = get_hero_id_by_actor(actor)
+                    if ban_hero_id is not None:
+                        stat_ban_hero_model = StatBanHeroes.query_one_or_init({
+                            'patchVersion': match_model.patchVersion,
+                            'shardId': match_model.shardId,
+                            'gameMode': match_model.gameMode,
+                            'averageRank': roster_model.averageRank,
+                            'side': roster_model.side,
+                            'ban_order': ban_order,
+                            'ban_hero_id': ban_hero_id
+                        })
+                        stat_ban_hero_model.games += 1
+                        if roster_model.won == 1:
+                            stat_ban_hero_model.wins += 1
+                        stat_ban_hero_model.win_rate = stat_ban_hero_model.wins / stat_ban_hero_model.games
+
+                        db.session.add(stat_ban_hero_model)
+                        db.session.flush()
 
         db.session.commit()
 

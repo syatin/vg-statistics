@@ -5,6 +5,7 @@ from .matches_extra import MatchesExtra
 from .participants import Participants
 from .players import Players
 from .rosters import Rosters
+from .stat_ban_heroes import StatBanHeroes
 from .stat_heroes import StatHeroes
 from .stat_heroes_duration import StatHeroesDuration
 from .stat_synergy import StatSynergy
@@ -18,6 +19,7 @@ __all__ = [
     Participants,
     Players,
     Rosters,
+    StatBanHeroes,
     StatHeroes,
     StatHeroesDuration,
     StatSynergy,
