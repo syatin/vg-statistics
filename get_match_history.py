@@ -5,7 +5,7 @@ import sys, traceback, time, requests
 
 from app.app import app
 from app.database import db
-from app.models import MHeros, MItems, Matches, MatchesExtra, Players, Participants, Rosters, StatHeros, StatHerosDuration, StatSynergy
+from app.models import MHeroes, MItems, Matches, MatchesExtra, Players, Participants, Rosters, StatHeroes, StatHeroesDuration, StatSynergy
 from app.util import get_rank, get_build_type, get_week_start_date, get_duration_type, analyze_telemetry
 
 from flask import Flask, request, g
@@ -245,9 +245,9 @@ def process_match(match, now):
 
                 # ヒーロー取得
                 actor = participant.actor
-                hero = MHeros.query.filter(MHeros.actor == actor).first()
+                hero = MHeroes.query.filter(MHeroes.actor == actor).first()
                 if hero is None:
-                    hero = MHeros(actor=actor, ja=actor, en=actor)
+                    hero = MHeroes(actor=actor, ja=actor, en=actor)
                     db.session.add(hero)
                     db.session.flush()
 
@@ -297,7 +297,7 @@ def process_match(match, now):
             participant_models_by_rosters.append(patricipant_models_with_role)
 
             # ヒーロー統計データ蓄積
-            stat_hero_models = _create_stat_heros(match_model, patricipant_models_with_role)
+            stat_hero_models = _create_stat_heroes(match_model, patricipant_models_with_role)
             db.session.add_all(stat_hero_models)
 
             # 各サイドの平均ランクを保存
@@ -403,13 +403,13 @@ def _assign_role_to_participants(match, participant_models, side, telemetry_data
     return patricipant_models_with_role
 
 
-def _create_stat_heros(match_model, participant_models):
+def _create_stat_heroes(match_model, participant_models):
     """
     ヒーロー統計を計算し、更新があった行を返す
     """
     stat_hero_models = []
     for participant_model in participant_models:
-        stat_hero_model = StatHeros.query_one_or_init({
+        stat_hero_model = StatHeroes.query_one_or_init({
             'patchVersion': match_model.patchVersion,
             'gameMode': match_model.gameMode,
             'shardId': match_model.shardId,
@@ -419,7 +419,7 @@ def _create_stat_heros(match_model, participant_models):
             'week': get_week_start_date(match_model.createdAt),
             'rank': participant_model.rank
         })
-        stat_hero_duration_model = StatHerosDuration.query_one_or_init({
+        stat_hero_duration_model = StatHeroesDuration.query_one_or_init({
             'patchVersion': match_model.patchVersion,
             'gameMode': match_model.gameMode,
             'shardId': match_model.shardId,

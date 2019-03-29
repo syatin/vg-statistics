@@ -20,12 +20,12 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 
-# テーブルのダンプ m_heros
+# テーブルのダンプ m_heroes
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `m_heros`;
+DROP TABLE IF EXISTS `m_heroes`;
 
-CREATE TABLE `m_heros` (
+CREATE TABLE `m_heroes` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `actor` varchar(32) DEFAULT NULL,
   `ja` varchar(32) DEFAULT NULL,
@@ -33,10 +33,10 @@ CREATE TABLE `m_heros` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-LOCK TABLES `m_heros` WRITE;
-/*!40000 ALTER TABLE `m_heros` DISABLE KEYS */;
+LOCK TABLES `m_heroes` WRITE;
+/*!40000 ALTER TABLE `m_heroes` DISABLE KEYS */;
 
-INSERT INTO `m_heros` (`id`, `actor`, `ja`, `en`)
+INSERT INTO `m_heroes` (`id`, `actor`, `ja`, `en`)
 VALUES
 	(1,'*Adagio*','アダージオ','Adagio'),
 	(2,'*Alpha*','アルファ','Alpha'),
@@ -83,7 +83,7 @@ VALUES
 	(43,'*Vox*','ヴォックス','Vox'),
 	(44,'*Yates*','イェーツ','Yates');
 
-/*!40000 ALTER TABLE `m_heros` ENABLE KEYS */;
+/*!40000 ALTER TABLE `m_heroes` ENABLE KEYS */;
 UNLOCK TABLES;
 
 

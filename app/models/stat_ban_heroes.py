@@ -1,9 +1,9 @@
 from app.database import db
 from sqlalchemy.types import JSON, VARCHAR, INT, DECIMAL, DATETIME, BOOLEAN
 
-class StatHeros(db.Model):
+class StatHeroes(db.Model):
 
-    __tablename__ = 'stat_heros'
+    __tablename__ = 'stat_heroes'
 
     id = db.Column(INT, primary_key=True)
     patchVersion = db.Column(DECIMAL)
@@ -22,18 +22,18 @@ class StatHeros(db.Model):
         """
         find one result. create new one if there's no result.
         """
-        model = StatHeros.query.filter(
-            StatHeros.hero_id == params['hero_id'],
-            StatHeros.patchVersion == params['patchVersion'],
-            StatHeros.gameMode == params['gameMode'],
-            StatHeros.week == params['week'],
-            StatHeros.shardId == params['shardId'],
-            StatHeros.rank == params['rank'],
-            StatHeros.role == params['role'],
-            StatHeros.build_type == params['build_type']
+        model = StatHeroes.query.filter(
+            StatHeroes.hero_id == params['hero_id'],
+            StatHeroes.patchVersion == params['patchVersion'],
+            StatHeroes.gameMode == params['gameMode'],
+            StatHeroes.week == params['week'],
+            StatHeroes.shardId == params['shardId'],
+            StatHeroes.rank == params['rank'],
+            StatHeroes.role == params['role'],
+            StatHeroes.build_type == params['build_type']
         ).first()
         if model is None:
-            model = StatHeros(
+            model = StatHeroes(
                 hero_id=params['hero_id'],
                 patchVersion=params['patchVersion'],
                 gameMode=params['gameMode'],

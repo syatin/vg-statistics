@@ -10,7 +10,7 @@ import sys, traceback, time, requests
 
 from app.app import app
 from app.database import db
-from app.models import MHeros, MItems, Matches, Players, Participants, Rosters, StatHeros, StatHerosDuration, StatSynergy
+from app.models import MHeroes, MItems, Matches, Players, Participants, Rosters, StatHeroes, StatHeroesDuration, StatSynergy
 from app.util import get_rank, get_build_type, get_week_start_date, get_duration_type, analyze_telemetry
 
 from datetime import datetime, date, timedelta, timezone

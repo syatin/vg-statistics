@@ -46,7 +46,7 @@ Config = DevelopmentConfig
 ```
 6. テーブル作成
     - `sql/*` 直下のファイル群を上から順番に実行。
-    - `sql/00-create_m_heros_2018-09-14.sql`
+    - `sql/00-create_m_heroes_2018-09-14.sql`
     - `sql/01-create_m_items_2018-09-14.sql`
     - `sql/02-create_tables.sql`
     - （全ファイル終わるまでやる）

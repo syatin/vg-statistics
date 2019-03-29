@@ -14,7 +14,7 @@ CREATE TABLE `stat_heroes_build_first_items` (
   PRIMARY KEY (`id`),
   KEY `hero_id` (`patchVersion`,`gameMode`,`shardId`,`hero_id`,`role`,`build_type`),
   KEY `hero_id_2` (`patchVersion`,`gameMode`,`role`,`build_type`,`hero_id`),
-  CONSTRAINT `stat_hero_first_item_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heros` (`id`)
+  CONSTRAINT `stat_hero_first_item_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heroes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `stat_heroes_build_tier3_items` (
@@ -35,6 +35,6 @@ CREATE TABLE `stat_heroes_build_tier3_items` (
   PRIMARY KEY (`id`),
   KEY `hero_id` (`patchVersion`,`gameMode`,`shardId`,`hero_id`,`role`,`build_type`),
   KEY `hero_id_2` (`patchVersion`,`gameMode`,`role`,`build_type`,`hero_id`),
-  CONSTRAINT `stat_heros_build_order_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heros` (`id`),
-  CONSTRAINT `stat_heros_build_order_ibfk_2` FOREIGN KEY (`item_id`) REFERENCES `m_items` (`id`)
+  CONSTRAINT `stat_heroes_build_order_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heroes` (`id`),
+  CONSTRAINT `stat_heroes_build_order_ibfk_2` FOREIGN KEY (`item_id`) REFERENCES `m_items` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

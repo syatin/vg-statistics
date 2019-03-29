@@ -9,7 +9,7 @@ from time import sleep
 
 from app.app import app
 from app.database import db
-from app.models import MHeros, MItems, Matches, MatchesExtra, Players, Participants, Rosters, StatHeros, StatHerosDuration, StatSynergy
+from app.models import MHeroes, MItems, Matches, MatchesExtra, Players, Participants, Rosters, StatHeroes, StatHeroesDuration, StatSynergy
 from app.util import get_rank, get_build_type, get_week_start_date, get_duration_type, analyze_telemetry
 
 from flask import Flask, request, g
@@ -94,26 +94,26 @@ def generate_csv(csv_output_targets):
 
         app.logger.info('5v5_pvp_ranked : {} matches'.format(len(match_models)))
 
-        used_heros_by_player = {}
+        used_heroes_by_player = {}
         for match_model in match_models:
             participant_models = Participants.query.filter(Participants.match_id == match_model.id).all()
             for participant_model in participant_models:
                 ign_name = participant_model.player_name
                 if ign_name in ign_player_table[team]:
                     player_name = ign_player_table[team][ign_name]
-                    if player_name not in used_heros_by_player:
-                        used_heros_by_player[player_name] = []
-                    used_heros_by_player[player_name].append(participant_model.actor)
+                    if player_name not in used_heroes_by_player:
+                        used_heroes_by_player[player_name] = []
+                    used_heroes_by_player[player_name].append(participant_model.actor)
 
         match_count_by_player = {}
-        for player_name in used_heros_by_player:
-            match_count_by_player[player_name] = len(used_heros_by_player[player_name])
+        for player_name in used_heroes_by_player:
+            match_count_by_player[player_name] = len(used_heroes_by_player[player_name])
 
         max_match_count = max(match_count_by_player.values())
 
         filename = f'{CSV_OUTPUT_DIR}/{team}_ranked.csv'
         with open(filename, 'w') as csv_file:
-            fieldnames = used_heros_by_player.keys()
+            fieldnames = used_heroes_by_player.keys()
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             writer.writeheader()
             for i in range(max_match_count):
@@ -121,7 +121,7 @@ def generate_csv(csv_output_targets):
                 for player_name in fieldnames:
                     match_count = match_count_by_player[player_name]
                     if i < match_count_by_player[player_name]:
-                        row[player_name] = used_heros_by_player[player_name][i]
+                        row[player_name] = used_heroes_by_player[player_name][i]
                     else:
                         row[player_name] = ''
                 writer.writerow(row)
@@ -360,9 +360,9 @@ def process_match_normal(match):
 
                 # ヒーローID取得
                 actor = participant.actor
-                hero = MHeros.query.filter(MHeros.actor == actor).first()
+                hero = MHeroes.query.filter(MHeroes.actor == actor).first()
                 if hero is None:
-                    hero = MHeros(actor=actor, ja=actor, en=actor)
+                    hero = MHeroes(actor=actor, ja=actor, en=actor)
                     db.session.add(hero)
                     db.session.flush()
 
@@ -413,7 +413,7 @@ def process_match_normal(match):
                 participant_models_by_rosters.append(patricipant_models_with_role)
 
                 # ヒーロー統計データ蓄積
-                stat_hero_models = _create_stat_heros(match_model, patricipant_models_with_role)
+                stat_hero_models = _create_stat_heroes(match_model, patricipant_models_with_role)
                 db.session.add_all(stat_hero_models)
 
                 # 各サイドの平均ランクを保存
@@ -536,13 +536,13 @@ def _assign_role_to_participants(match, participant_models, side, telemetry_data
     return patricipant_models_with_role
 
 
-def _create_stat_heros(match_model, participant_models):
+def _create_stat_heroes(match_model, participant_models):
     """
     ヒーロー統計を計算し、更新があった行を返す
     """
     stat_hero_models = []
     for participant_model in participant_models:
-        stat_hero_model = StatHeros.query_one_or_init({
+        stat_hero_model = StatHeroes.query_one_or_init({
             'patchVersion': match_model.patchVersion,
             'gameMode': match_model.gameMode,
             'shardId': match_model.shardId,
@@ -552,7 +552,7 @@ def _create_stat_heros(match_model, participant_models):
             'week': get_week_start_date(match_model.createdAt),
             'rank': participant_model.rank
         })
-        stat_hero_duration_model = StatHerosDuration.query_one_or_init({
+        stat_hero_duration_model = StatHeroesDuration.query_one_or_init({
             'patchVersion': match_model.patchVersion,
             'gameMode': match_model.gameMode,
             'shardId': match_model.shardId,

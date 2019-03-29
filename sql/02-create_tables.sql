@@ -85,10 +85,10 @@ CREATE TABLE `participants` (
   KEY `hero_id` (`hero_id`),
   KEY `match_id` (`match_id`,`player_id`),
   CONSTRAINT `participants_ibfk_1` FOREIGN KEY (`roster_id`) REFERENCES `rosters` (`id`),
-  CONSTRAINT `participants_ibfk_3` FOREIGN KEY (`hero_id`) REFERENCES `m_heros` (`id`)
+  CONSTRAINT `participants_ibfk_3` FOREIGN KEY (`hero_id`) REFERENCES `m_heroes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `stat_heros` (
+CREATE TABLE `stat_heroes` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `patchVersion` decimal(10,1) DEFAULT NULL,
   `shardId` varchar(3) DEFAULT NULL,
@@ -104,10 +104,10 @@ CREATE TABLE `stat_heros` (
   PRIMARY KEY (`id`),
   KEY `hero_id` (`hero_id`,`patchVersion`,`gameMode`,`shardId`,`week`),
   KEY `hero_id_2` (`hero_id`,`patchVersion`,`gameMode`,`week`),
-  CONSTRAINT `stat_heros_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heros` (`id`)
+  CONSTRAINT `stat_heroes_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heroes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `stat_heros_duration` (
+CREATE TABLE `stat_heroes_duration` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `patchVersion` decimal(10,1) DEFAULT NULL,
   `shardId` varchar(3) DEFAULT NULL,
@@ -121,7 +121,7 @@ CREATE TABLE `stat_heros_duration` (
   `win_rate` decimal(5,2) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `hero_id` (`hero_id`,`patchVersion`,`gameMode`),
-  CONSTRAINT `stat_heros_duratiion_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heros` (`id`)
+  CONSTRAINT `stat_heroes_duratiion_ibfk_1` FOREIGN KEY (`hero_id`) REFERENCES `m_heroes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `stat_synergy` (
@@ -141,8 +141,8 @@ CREATE TABLE `stat_synergy` (
   KEY `patchVersion` (`patchVersion`,`gameMode`,`hero_id_1`,`role_1`,`is_enemy`),
   KEY `hero_id_1` (`hero_id_1`),
   KEY `hero_id_2` (`hero_id_2`),
-  CONSTRAINT `stat_synergy_ibfk_1` FOREIGN KEY (`hero_id_1`) REFERENCES `m_heros` (`id`),
-  CONSTRAINT `stat_synergy_ibfk_2` FOREIGN KEY (`hero_id_2`) REFERENCES `m_heros` (`id`)
+  CONSTRAINT `stat_synergy_ibfk_1` FOREIGN KEY (`hero_id_1`) REFERENCES `m_heroes` (`id`),
+  CONSTRAINT `stat_synergy_ibfk_2` FOREIGN KEY (`hero_id_2`) REFERENCES `m_heroes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create syntax for TABLE 'vgpro_leaderboard'

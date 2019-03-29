@@ -1,6 +1,6 @@
 from app.app import app
 from app.database import db
-from app.models import MHeros, MItems, Matches, Players, Participants, Rosters, StatHeros, StatSynergy
+from app.models import MHeroes, MItems, Matches, Players, Participants, Rosters, StatHeroes, StatSynergy
 from app.util import get_rank, get_build_type, get_week_start_date, get_duration_type
 
 from flask import Flask, request, g
@@ -37,8 +37,8 @@ def main(gamemode):
             else:
                 participant_models_2.append(participant_model)
 
-        hero_stat_models_1 = _create_stat_heros(match_model, participant_models_1)
-        hero_stat_models_2 = _create_stat_heros(match_model, participant_models_2)
+        hero_stat_models_1 = _create_stat_(match_model, participant_models_1)
+        hero_stat_models_2 = _create_stat_heroes(match_model, participant_models_2)
         db.session.add_all(hero_stat_models_1)
         db.session.add_all(hero_stat_models_2)
 
@@ -49,13 +49,13 @@ def main(gamemode):
         db.session.commit()
 
 
-def _create_stat_heros(match_model, participant_models):
+def _create_stat_heroes(match_model, participant_models):
     """
     ヒーロー統計を計算し、更新があった行を返す
     """
     stat_hero_models = []
     for participant_model in participant_models:
-        stat_hero_model = StatHeros.query_one_or_init({
+        stat_hero_model = StatHeroes.query_one_or_init({
             'hero_id': participant_model.hero_id,
             'patchVersion': match_model.patchVersion,
             'gameMode': match_model.gameMode,

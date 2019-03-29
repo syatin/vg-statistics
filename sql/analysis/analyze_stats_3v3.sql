@@ -5,8 +5,8 @@ SELECT `s`.`week`,
        `s`.`build_type` AS `ビルド`,
        SUM(`s`.`games`) AS `試合数`,
        CONCAT(FORMAT((SUM(`s`.`wins`) / SUM(`s`.`games`) * 100), 2), ' %') as `勝率`
-  FROM `stat_heros` `s`
-  JOIN `m_heros` `m`
+  FROM `stat_heroes` `s`
+  JOIN `m_heroes` `m`
     ON `s`.`hero_id` = `m`.`id`
  WHERE `s`.`patchVersion` = '4.1'
    AND `s`.`gameMode` = 'ranked'
@@ -24,8 +24,8 @@ SELECT `m`.`ja` AS `ヒーロー（EA, 3v3）`,
        `s`.`build_type` AS `ビルド`,
        SUM(`s`.`games`) AS `試合数`,
        CONCAT(FORMAT((SUM(`s`.`wins`) / SUM(`s`.`games`) * 100), 2), ' %') as `勝率`
-  FROM `stat_heros` `s`
-  JOIN `m_heros` `m`
+  FROM `stat_heroes` `s`
+  JOIN `m_heroes` `m`
     ON `s`.`hero_id` = `m`.`id`
  WHERE `s`.`patchVersion` = '4.1'
    AND `s`.`gameMode` = 'ranked'
@@ -43,9 +43,9 @@ SELECT `s`.`patchVersion`, `s`.`gameMode`,
        `s`.`is_enemy`,
        `s`.`games`, `s`.`win_rate`, `s`.`synergy`
   FROM `stat_synergy` `s`
-  JOIN `m_heros` `h1`
+  JOIN `m_heroes` `h1`
     ON `h1`.`id` = `s`.`hero_id_1`
-  JOIN `m_heros` `h2`
+  JOIN `m_heroes` `h2`
     ON `h2`.`id` = `s`.`hero_id_2`
  WHERE `s`.`gameMode` = 'ranked'
    AND `s`.`patchVersion` = '4.1'
@@ -64,10 +64,10 @@ SELECT `sd`.`patchVersion`,
        `sd`.`duration_type` AS `試合時間（分）`,
        `sd`.`games` AS `試合数`,
        `sd`.`win_rate` AS `勝率`
-  FROM `stat_heros_duration` `sd`
-  JOIN `m_heros` `h`
+  FROM `stat_heroes_duration` `sd`
+  JOIN `m_heroes` `h`
     ON `sd`.`hero_id` = `h`.`id`
-  LEFT OUTER JOIN `stat_heros` `s`
+  LEFT OUTER JOIN `stat_heroes` `s`
     ON `s`.`patchVersion` = `sd`.`patchVersion`
    AND `s`.`shardId` = `sd`.`shardId`
    AND `s`.`gameMode` = `sd`.`gameMode`
@@ -95,7 +95,7 @@ SELECT `h`.`ja` AS `CPビルド(3v3, EA)`,
   FROM `participants` `p`
   JOIN `matches` `m`
     ON `p`.`match_id` = `m`.`id`
-  JOIN `m_heros` `h`
+  JOIN `m_heroes` `h`
     ON `p`.`actor` = `h`.`actor`
  WHERE `m`.`patchVersion` = '4.1'
    AND `m`.`gamemode` = 'ranked' # ranked / 5v5_pvp_ranked
@@ -115,7 +115,7 @@ SELECT `h`.`ja` AS `WPビルド(3v3, EA)`,
   FROM `participants` `p`
   JOIN `matches` `m`
     ON `p`.`match_id` = `m`.`id`
-  JOIN `m_heros` `h`
+  JOIN `m_heroes` `h`
     ON `p`.`actor` = `h`.`actor`
  WHERE `m`.`patchVersion` = '4.1'
    AND `m`.`gamemode` = 'ranked' # ranked, 5v5_pvp_ranked
@@ -135,7 +135,7 @@ SELECT `h`.`ja` AS `サポートビルド(3v3, EA)`,
   FROM `participants` `p`
   JOIN `matches` `m`
     ON `p`.`match_id` = `m`.`id`
-  JOIN `m_heros` `h`
+  JOIN `m_heroes` `h`
     ON `p`.`actor` = `h`.`actor`
  WHERE `m`.`patchVersion` = '4.1'
    AND `m`.`gamemode` = 'ranked' # ranked / 5v5_pvp_ranked

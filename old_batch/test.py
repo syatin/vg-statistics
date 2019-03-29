@@ -1,6 +1,6 @@
 from app.app import app
 from app.database import db
-from app.models import MHeros, MItems, Matches, Players, Participants, Rosters, StatHeros, StatSynergy, StatHeros2, StatHerosDuration
+from app.models import MHeroes, MItems, Matches, Players, Participants, Rosters, StatHeroes, StatSynergy, StatHeroes2, StatHeroesDuration
 from app.util import get_rank, get_build_type, get_week_start_date, get_duration_type
 
 from flask import Flask, request, g
@@ -20,8 +20,8 @@ def main(gamemode):
     limit = 100
     while True:
         app.logger.info('offset = ' + str(offset))
-        stat_list = StatHeros.query.\
-            order_by(StatHeros.id).limit(limit).offset(offset).all()
+        stat_list = StatHeroes.query.\
+            order_by(StatHeroes.id).limit(limit).offset(offset).all()
 
         if stat_list is None or len(stat_list) == 0:
             break
@@ -72,7 +72,7 @@ def main(gamemode):
                 week_correct = datetime.strptime('2018-09-17', "%Y-%m-%d")
             app.logger.info(week_correct)
 
-            stat2 = StatHeros2.query_one_or_init({
+            stat2 = StatHeroes2.query_one_or_init({
                 'hero_id': stat.hero_id,
                 'patchVersion': stat.patchVersion,
                 'gameMode': stat.gameMode,
@@ -87,7 +87,7 @@ def main(gamemode):
             stat2.win_rate = stat2.wins / stat2.games
             db.session.add(stat2)
 
-            stat_duration = StatHerosDuration.query_one_or_init({
+            stat_duration = StatHeroesDuration.query_one_or_init({
                 'patchVersion' : stat.patchVersion,
                 'gameMode' : stat.gameMode,
                 'shardId' : stat.shardId,
