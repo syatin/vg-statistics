@@ -16,7 +16,7 @@ jsonschema==3.0.1
 MarkupSafe==1.1.1
 mysql-connector-python==8.0.15
 mysqlclient==1.4.2.post1
-numpy==1.16.2
+numpy==1.22.0
 Pillow==6.2.0
 protobuf==3.7.0
 pycparser==2.19
